@@ -53,14 +53,30 @@ jobs:
           sftp_only: true
           sftpArgs: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20"
 
-      - name: Deploy backend (Laravel) to Hostinger
+      - name: Crea archivio backend (velocizza upload: 1 file invece di migliaia)
+        run: tar -czf backend.tar.gz backend
+
+      - name: Upload archivio backend su Hostinger
         uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
           username: ${{ secrets.HOSTINGER_SSH_USER }}
           server: ${{ secrets.HOSTINGER_SSH_HOST }}
           port: ${{ secrets.HOSTINGER_SSH_PORT }}
           ssh_private_key: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
-          local_path: "./backend"
-          remote_path: "/home/u705656439/domains/francescomelani.com/public_html/dev/backend"
+          local_path: "./backend.tar.gz"
+          remote_path: "/home/u705656439/domains/francescomelani.com/public_html/dev"
           sftp_only: true
           sftpArgs: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20"
+
+      - name: Estrai backend sul server (SSH)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_SSH_HOST }}
+          username: ${{ secrets.HOSTINGER_SSH_USER }}
+          key: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.HOSTINGER_SSH_PORT }}
+          script: |
+            cd /home/u705656439/domains/francescomelani.com/public_html/dev
+            rm -rf backend
+            tar -xzf backend.tar.gz
+            rm -f backend.tar.gz
