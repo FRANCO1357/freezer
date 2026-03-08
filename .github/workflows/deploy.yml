@@ -53,6 +53,18 @@ jobs:
           sftp_only: true
           sftpArgs: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20"
 
+      - name: Deploy .htaccess (SPA routing)
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
+        with:
+          username: ${{ secrets.HOSTINGER_SSH_USER }}
+          server: ${{ secrets.HOSTINGER_SSH_HOST }}
+          port: ${{ secrets.HOSTINGER_SSH_PORT }}
+          ssh_private_key: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
+          local_path: "./app/dist/app/browser/.htaccess"
+          remote_path: "/home/u705656439/domains/francescomelani.com/public_html/dev"
+          sftp_only: true
+          sftpArgs: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20"
+
       - name: Crea archivio backend
         run: tar -czf backend.tar.gz backend
 
