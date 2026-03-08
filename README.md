@@ -218,6 +218,24 @@ Questo utente viene creato dal seeder. **Dopo il primo accesso, cambia la passwo
    ```
 2. Le route API sono: `POST /api/login`, `POST /api/logout`, `GET /api/user` (protetta).
 
+### Migrazioni e seed in produzione (Hostinger)
+
+I comandi `php artisan migrate` e `php artisan db:seed` vanno eseguiti **sul server**, non sul tuo Mac: in locale aggiornano solo il DB locale (MAMP); il database di produzione (`u705656439_dev_francesco`) resta vuoto finché non lanci migrate/seed **dopo esserti connesso via SSH**.
+
+1. **Verifica SSH:** in **hPanel** → **Advanced** → **SSH Access** controlla che SSH sia attivo e annota **Hostname** (o IP), **Porta** (es. 65002), **Username** (es. `u705656439`).
+2. **Connettiti dal Mac** (usa la stessa chiave del deploy):
+   ```bash
+   ssh -i ~/.ssh/hostinger_deploy -p PORTA USERNAME@HOSTNAME
+   ```
+   Esempio: `ssh -i ~/.ssh/hostinger_deploy -p 65002 u705656439@srv123.hostinger.com`
+3. **Sul server** esegui:
+   ```bash
+   cd domains/francescomelani.com/public_html/dev/backend
+   php artisan migrate --force
+   php artisan db:seed --force
+   ```
+4. Esci con `exit`. In phpMyAdmin su Hostinger, nel database `u705656439_dev_francesco`, dovresti vedere le tabelle e l’utente admin.
+
 ### Frontend (Angular)
 
 - **Login:** `/login` — form email/password che chiama l’API e salva il token in `sessionStorage`.

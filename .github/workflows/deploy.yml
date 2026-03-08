@@ -77,6 +77,8 @@ jobs:
           port: ${{ secrets.HOSTINGER_SSH_PORT }}
           script: |
             cd /home/u705656439/domains/francescomelani.com/public_html/dev
+            cp backend/.env /tmp/backend_env_backup 2>/dev/null || true
             rm -rf backend
             tar -xzf backend.tar.gz
+            cp /tmp/backend_env_backup backend/.env 2>/dev/null || true
             rm -f backend.tar.gz
