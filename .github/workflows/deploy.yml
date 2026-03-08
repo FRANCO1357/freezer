@@ -53,7 +53,7 @@ jobs:
           sftp_only: true
           sftpArgs: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20"
 
-      - name: "Crea archivio backend (velocizza upload)"
+      - name: Crea archivio backend
         run: tar -czf backend.tar.gz backend
 
       - name: Upload archivio backend su Hostinger

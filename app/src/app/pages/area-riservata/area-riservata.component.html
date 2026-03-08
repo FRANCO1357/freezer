@@ -1,0 +1,10 @@
+<div class="area-page">
+  <header class="header">
+    <h1>Area riservata</h1>
+    <p class="user">Ciao, {{ user?.name ?? user?.email ?? 'Utente' }}</p>
+    <button type="button" class="btn-logout" (click)="logout()">Esci</button>
+  </header>
+  <main class="content">
+    <p>Benvenuto nell’area protetta. Solo gli utenti autenticati possono vedere questa pagina.</p>
+  </main>
+</div>

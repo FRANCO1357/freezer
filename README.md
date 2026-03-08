@@ -137,9 +137,38 @@ Il backend Laravel si trova in **`backend/`** e può essere collegato al databas
    ```
 4. Per provare in locale: `php artisan serve` e apri http://localhost:8000. La route **http://localhost:8000/db-check** restituisce un JSON con l'esito della connessione al DB.
 
+### 4.2b Usare MAMP (o simile) in locale
+
+Se usi **MAMP**, **Laragon** o **XAMPP** hai MySQL e **phpMyAdmin** in locale: stesso motore del server e interfaccia per vedere le tabelle (es. `users`).
+
+1. **Avvia MAMP** e avvia i servizi (Apache e MySQL).
+2. Apri **phpMyAdmin** (da MAMP: Open WebStart page → Tools → phpMyAdmin, oppure http://localhost:8888/phpMyAdmin se la porta è 8888).
+3. Crea un database (es. `dev_francescomelani`) e annota nome, utente e password. Con MAMP spesso: **porta MySQL 8889**, utente **root**, password **root** (o vuota).
+4. In **`backend/.env`** imposta:
+   ```env
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=8889
+   DB_DATABASE=dev_francescomelani
+   DB_USERNAME=root
+   DB_PASSWORD=root
+   ```
+   (Usa la porta e le credenziali che vedi in MAMP se diverse.)
+5. Crea le tabelle e l’utente di login:
+   ```bash
+   cd backend
+   php artisan migrate
+   php artisan db:seed
+   ```
+6. In phpMyAdmin seleziona il database e apri la tabella **`users`** per vedere i dati. La route **http://localhost:8000/db-check** (con `php artisan serve`) conferma la connessione.
+
+**Nota:** con MAMP usi il PHP di MAMP per `php artisan`; se preferisci il PHP di sistema (Homebrew), tieni MySQL avviato da MAMP e nel `.env` imposta solo `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` come sopra.
+
 ### 4.3 Configurare il backend su Hostinger (dopo il deploy)
 
-Il deploy carica anche la cartella **backend** in `public_html/dev/backend`. Il file **`.env`** non viene mai caricato (è in .gitignore), quindi va creato a mano sul server:
+Il deploy carica anche la cartella **backend** in `public_html/dev/backend`. Il file **`.env`** non viene mai caricato (è in .gitignore), quindi va creato a mano sul server.
+
+**PHP su Hostinger:** il backend richiede **PHP ≥ 8.4**. In **hPanel** → **Advanced** → **PHP Configuration** imposta la versione PHP a **8.4** (o la massima disponibile ≥ 8.2) per il dominio/sottodominio; altrimenti vedrai "Composer detected issues in your platform" (PHP 7.4 non è compatibile).
 
 1. In **hPanel** → **File Manager** apri la cartella **`public_html` → `dev` → `backend`** (deve esserci dopo un deploy con il nuovo workflow).
 2. Clicca **+ New file**, nome file: **`.env`**.
@@ -165,13 +194,45 @@ Il deploy carica anche la cartella **backend** in `public_html/dev/backend`. Il 
 
 ---
 
-## 5. Deploy manuale
+## 5. Login e area riservata
+
+L’app include una **pagina di login** e un’**area riservata** protetta. L’autenticazione usa **Laravel Sanctum** (token API), **password con hash bcrypt**, **rate limiting** sul login (5 tentativi/minuto) e **CORS** configurato.
+
+### Credenziali utente (da cambiare in produzione)
+
+| Campo    | Valore                        |
+|----------|-------------------------------|
+| **Email**    | `admin@francescomelani.com`   |
+| **Password** | `FmAdmin2025!`                |
+
+Questo utente viene creato dal seeder. **Dopo il primo accesso, cambia la password** (aggiungendo ad es. una route/UI per il cambio password).
+
+### Backend (Laravel)
+
+1. Installa Sanctum e esegui le migrazioni (in locale e sul server dopo il deploy):
+   ```bash
+   cd backend
+   composer update
+   php artisan migrate
+   php artisan db:seed
+   ```
+2. Le route API sono: `POST /api/login`, `POST /api/logout`, `GET /api/user` (protetta).
+
+### Frontend (Angular)
+
+- **Login:** `/login` — form email/password che chiama l’API e salva il token in `sessionStorage`.
+- **Area riservata:** `/area-riservata` — accessibile solo se autenticati (guard); pulsante “Esci” per logout.
+- In sviluppo il proxy inoltra le richieste a `/api` verso `http://localhost:8000`. In produzione l’API è su `/backend/public/api`.
+
+---
+
+## 6. Deploy manuale
 
 - Vai su **Actions** → workflow **“Deploy to dev.francescomelani.com”** → **Run workflow** → **Run workflow**.
 
 ---
 
-## 6. Prossimi passi (opzionale)
+## 7. Prossimi passi (opzionale)
 
 - Se userai **Node/npm** (es. React, Vite, Next.js):
   - Apri `.github/workflows/deploy.yml`.
