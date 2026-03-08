@@ -1,0 +1,17 @@
+# SPA: tutte le richieste non corrispondenti a file/directory vanno a index.html
+# così /login, /area-riservata ecc. funzionano anche con URL diretto o refresh.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Non riscrivere richieste al backend Laravel
+  RewriteCond %{REQUEST_URI} ^/backend [NC]
+  RewriteRule ^ - [L]
+
+  # Servi file e directory esistenti
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # Fallback su index.html per le route Angular
+  RewriteRule ^ index.html [L]
+</IfModule>
