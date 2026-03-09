@@ -11,7 +11,7 @@ Segui questi passi in ordine.
 3. **Description:** opzionale (es. "Progetto freezer – francescomelani.com").
 4. Scegli **Public** (o Private se preferisci).
 5. **Non** spuntare:
-   - "Add a README file"
+   - "Add a README file" 
    - "Add .gitignore"
    - "Choose a license"  
    (il progetto ha già tutto in locale.)
