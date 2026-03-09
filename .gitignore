@@ -35,6 +35,9 @@ deploy/
 credentials.local
 *.pem
 
+# Dump DB (generati da scripts/sync-db-to-production.sh)
+freezer_dump.sql
+
 # Logs
 *.log
 npm-debug.log*

@@ -176,6 +176,32 @@ Eseguire **sul server** (non in locale):
    ```
    Se `php` non è nel PATH, usa ad es. `/opt/alt/php84/usr/bin/php artisan ...`.
 
+### 4.6 Sincronizzare il database locale con produzione
+
+Per **aggiungere i dati** dal database locale (MAMP) al database su Hostinger **senza cancellare né sovrascrivere** ciò che è già in produzione:
+
+1. **Prerequisiti:** `backend/.env` connesso al DB locale (MAMP); `credentials.local` con la sezione `[database_hostinger]` compilata. Chiave SSH per Hostinger (es. `~/.ssh/hostinger_deploy`). Sul server le tabelle devono già esistere (es. dopo `php artisan migrate`).
+2. Dalla **root del progetto**:
+   ```bash
+   ./scripts/sync-db-to-production.sh
+   ```
+   Lo script esporta solo i **dati** (nessun `DROP TABLE` né `CREATE TABLE`) e usa **INSERT IGNORE**: in produzione vengono inserite solo le righe che non esistono già (stessa chiave primaria). I dati già presenti in produzione restano invariati.
+
+**Override SSH** (se host/porta/utente/chiave sono diversi): imposta le variabili d’ambiente prima di eseguire lo script:
+   ```bash
+   export HOSTINGER_SSH_KEY=~/.ssh/hostinger_deploy
+   export HOSTINGER_SSH_HOST=195.35.49.118
+   export HOSTINGER_SSH_PORT=65002
+   export HOSTINGER_SSH_USER=u705656439
+   ./scripts/sync-db-to-production.sh
+   ```
+
+Se sul server il comando `mysql` non è disponibile, usa solo l’export e importa a mano da **phpMyAdmin** (Import):
+   ```bash
+   EXPORT_ONLY=1 ./scripts/sync-db-to-production.sh
+   ```
+   Poi carica il file `freezer_dump.sql` in phpMyAdmin su Hostinger nel database di produzione.
+
 ---
 
 ## 5. Login e area riservata
