@@ -3,6 +3,8 @@
 Progetto collegato al sottodominio **dev.francescomelani.com** su Hostinger.  
 Sviluppi in locale, push su GitHub → deploy automatico sul sottodominio.
 
+**Credenziali:** le password, le chiavi e i dati sensibili non sono nel README. Sono in un file locale **`credentials.local`** (in `.gitignore`, mai caricato su GitHub). Copia **`credentials.example`** in **`credentials.local`** e compila con i valori reali; solo tu li hai sulla tua macchina.
+
 ---
 
 ## Sottodominio e percorso
@@ -114,7 +116,7 @@ Il backend Laravel si trova in **`backend/`** e può essere collegato al databas
 3. Crea un utente MySQL e assegnalo al database (con tutti i privilegi).
 4. Annota: **host** (solitamente `localhost`), **nome database**, **username**, **password**. Su Hostinger l'host MySQL è spesso `localhost`; il nome utente è nel formato `u705656439_nomeutente`.
 
-**Credenziali DB per questo progetto:** username `dev_francesco`, password `Dev_francesco1`. Usale in `backend/.env` (`DB_USERNAME`, `DB_PASSWORD`) e nel file `.env` su Hostinger dopo il deploy.
+Le credenziali DB (username, password, nome database) sono in **`credentials.local`** → sezione `[database_hostinger]`. Usale in `backend/.env` (`DB_USERNAME`, `DB_PASSWORD`, `DB_DATABASE`) e nel file `.env` su Hostinger dopo il deploy.
 
 ### 4.2 Configurare Laravel in locale
 
@@ -172,24 +174,24 @@ Il deploy carica anche la cartella **backend** in `public_html/dev/backend`. Il 
 
 1. In **hPanel** → **File Manager** apri la cartella **`public_html` → `dev` → `backend`** (deve esserci dopo un deploy con il nuovo workflow).
 2. Clicca **+ New file**, nome file: **`.env`**.
-3. Incolla un contenuto simile (adatta `APP_KEY` se necessario; in produzione usa `APP_DEBUG=false`):
+3. Incolla un contenuto simile: prendi **`APP_KEY`**, **`DB_DATABASE`**, **`DB_USERNAME`**, **`DB_PASSWORD`** da **`credentials.local`** (sezioni `[laravel]` e `[database_hostinger]`). In produzione usa `APP_DEBUG=false`.
 
    ```env
    APP_NAME=Laravel
    APP_ENV=production
-   APP_KEY=base64:ce5SF8gaqMrEjY/E3f1aX94c4M2PCL5ZeDuhxkA8frs=
+   APP_KEY=<da credentials.local [laravel]>
    APP_DEBUG=false
    APP_URL=https://dev.francescomelani.com
 
    DB_CONNECTION=mysql
    DB_HOST=localhost
    DB_PORT=3306
-   DB_DATABASE=u705656439_dev_francesco
-   DB_USERNAME=u705656439_dev_francesco
-   DB_PASSWORD=Dev_francesco1
+   DB_DATABASE=<da credentials.local [database_hostinger]>
+   DB_USERNAME=<da credentials.local [database_hostinger]>
+   DB_PASSWORD=<da credentials.local [database_hostinger]>
    ```
 
-4. Salva. Da quel momento Laravel sul server userà il database MySQL di Hostinger. **Verifica connessione DB:** apri `https://dev.francescomelani.com/backend/public/db-check`; se vedi `{"ok":true,"database":"u705656439_dev_francesco",...}` la connessione è attiva. Su alcuni piani Hostinger potrebbe essere necessario puntare un sottodominio (es. `api.dev.francescomelani.com`) alla cartella `backend/public` da hPanel.
+4. Salva. Da quel momento Laravel sul server userà il database MySQL di Hostinger. **Verifica connessione DB:** apri `https://dev.francescomelani.com/backend/public/db-check`; se vedi `{"ok":true,"database":"...",...}` la connessione è attiva. Su alcuni piani Hostinger potrebbe essere necessario puntare un sottodominio (es. `api.dev.francescomelani.com`) alla cartella `backend/public` da hPanel.
 
 
 ---
@@ -200,12 +202,7 @@ L’app include una **pagina di login** e un’**area riservata** protetta. L’
 
 ### Credenziali utente (da cambiare in produzione)
 
-| Campo    | Valore                        |
-|----------|-------------------------------|
-| **Email**    | `admin@francescomelani.com`   |
-| **Password** | `FmAdmin2025!`                |
-
-Questo utente viene creato dal seeder. **Dopo il primo accesso, cambia la password** (aggiungendo ad es. una route/UI per il cambio password).
+Email e password dell’utente admin sono in **`credentials.local`** → sezione `[login_admin]`. L’utente viene creato dal seeder. **Dopo il primo accesso, cambia la password** (aggiungendo ad es. una route/UI per il cambio password).
 
 ### Backend (Laravel)
 
@@ -220,7 +217,7 @@ Questo utente viene creato dal seeder. **Dopo il primo accesso, cambia la passwo
 
 ### Migrazioni e seed in produzione (Hostinger)
 
-I comandi `php artisan migrate` e `php artisan db:seed` vanno eseguiti **sul server**, non sul tuo Mac: in locale aggiornano solo il DB locale (MAMP); il database di produzione (`u705656439_dev_francesco`) resta vuoto finché non lanci migrate/seed **dopo esserti connesso via SSH**.
+I comandi `php artisan migrate` e `php artisan db:seed` vanno eseguiti **sul server**, non sul tuo Mac: in locale aggiornano solo il DB locale (MAMP); il database di produzione (nome in `credentials.local`) resta vuoto finché non lanci migrate/seed **dopo esserti connesso via SSH**.
 
 1. **Verifica SSH:** in **hPanel** → **Advanced** → **SSH Access** controlla che SSH sia attivo e annota **Hostname** (o IP), **Porta** (es. 65002), **Username** (es. `u705656439`).
 2. **Connettiti dal Mac** (usa la stessa chiave del deploy):
@@ -234,7 +231,7 @@ I comandi `php artisan migrate` e `php artisan db:seed` vanno eseguiti **sul ser
    php artisan migrate --force
    php artisan db:seed --force
    ```
-4. Esci con `exit`. In phpMyAdmin su Hostinger, nel database `u705656439_dev_francesco`, dovresti vedere le tabelle e l’utente admin.
+4. Esci con `exit`. In phpMyAdmin su Hostinger, nel database configurato (nome in `credentials.local`), dovresti vedere le tabelle e l’utente admin.
 
 ### Frontend (Angular)
 

@@ -32,6 +32,7 @@ deploy/
 .env
 .env.local
 .env.*.local
+credentials.local
 *.pem
 
 # Logs
