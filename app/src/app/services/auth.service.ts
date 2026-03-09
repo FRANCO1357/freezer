@@ -25,11 +25,11 @@ export class AuthService {
   private userKey = 'auth_user';
 
   getToken(): string | null {
-    return sessionStorage.getItem(this.tokenKey);
+    return localStorage.getItem(this.tokenKey);
   }
 
   getStoredUser(): User | null {
-    const raw = sessionStorage.getItem(this.userKey);
+    const raw = localStorage.getItem(this.userKey);
     if (!raw) return null;
     try {
       return JSON.parse(raw) as User;
@@ -47,8 +47,8 @@ export class AuthService {
       .post<LoginResponse>(`${this.apiUrl}/login`, { email, password })
       .pipe(
         tap((res) => {
-          sessionStorage.setItem(this.tokenKey, res.token);
-          sessionStorage.setItem(this.userKey, JSON.stringify(res.user));
+          localStorage.setItem(this.tokenKey, res.token);
+          localStorage.setItem(this.userKey, JSON.stringify(res.user));
         })
       );
   }
@@ -71,7 +71,7 @@ export class AuthService {
   fetchUser(): Observable<User | null> {
     if (!this.getToken()) return of(null);
     return this.http.get<User>(`${this.apiUrl}/user`).pipe(
-      tap((user) => sessionStorage.setItem(this.userKey, JSON.stringify(user))),
+      tap((user) => localStorage.setItem(this.userKey, JSON.stringify(user))),
       catchError(() => {
         this.clearSession();
         return of(null);
@@ -84,7 +84,7 @@ export class AuthService {
   }
 
   private clearSession(): void {
-    sessionStorage.removeItem(this.tokenKey);
-    sessionStorage.removeItem(this.userKey);
+    localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.userKey);
   }
 }

@@ -167,20 +167,27 @@ Eseguire **sul server** (non in locale):
    ```bash
    ssh -i ~/.ssh/hostinger_deploy -p 65002 u705656439@195.35.49.118
    ```
-2. Sul server:
+2. Sul server (Hostinger usa PHP 7.4 di default in SSH; il progetto richiede PHP 8.4, quindi usa il path completo):
    ```bash
    cd domains/francescomelani.com/public_html/freezer/backend
-   php artisan migrate --force
-   php artisan db:seed --force
+   /opt/alt/php84/usr/bin/php artisan migrate --force
+   /opt/alt/php84/usr/bin/php artisan db:seed --force
    exit
    ```
-   Se `php` non è nel PATH, usa ad es. `/opt/alt/php84/usr/bin/php artisan ...`.
+   Se il path non esiste, in **hPanel** → **Advanced** → **PHP Configuration** verifica le versioni disponibili; a volte è `php82` o `php83` in `/opt/alt/phpXX/usr/bin/php`.
+
+   **Se il DB in produzione resta vuoto** (es. "Nothing to migrate" ma in phpMyAdmin non ci sono tabelle): quasi sempre il **`.env` sul server** punta a un altro database. In SSH controlla con `cat .env | grep DB_` dalla cartella `backend`. Verifica che `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` siano quelli del DB **freezer** (come in `credentials.local` → `[database_hostinger]`). Se erano sbagliati, correggi il `.env` in File Manager, poi sul server:
+   ```bash
+   /opt/alt/php84/usr/bin/php artisan migrate:fresh --force
+   /opt/alt/php84/usr/bin/php artisan db:seed --force
+   ```
+   Così le tabelle vengono create (o ricreate) nel database corretto.
 
 ### 4.6 Sincronizzare il database locale con produzione
 
 Per **aggiungere i dati** dal database locale (MAMP) al database su Hostinger **senza cancellare né sovrascrivere** ciò che è già in produzione:
 
-1. **Prerequisiti:** `backend/.env` connesso al DB locale (MAMP); `credentials.local` con la sezione `[database_hostinger]` compilata. Chiave SSH per Hostinger (es. `~/.ssh/hostinger_deploy`). Sul server le tabelle devono già esistere (es. dopo `php artisan migrate`).
+1. **Prerequisiti:** `backend/.env` connesso al DB locale (MAMP); `credentials.local` con la sezione `[database_hostinger]` compilata. Chiave SSH per Hostinger (es. `~/.ssh/hostinger_deploy`). **Se il DB in produzione è vuoto (nessuna tabella):** esegui prima § 4.5 (migrate + seed sul server), così vengono create le tabelle; poi puoi usare lo script di sync per aggiungere altri dati da locale.
 2. Dalla **root del progetto**:
    ```bash
    ./scripts/sync-db-to-production.sh
