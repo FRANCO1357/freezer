@@ -1,9 +1,9 @@
-# Deploy su dev.francescomelani.com (Hostinger) via SSH/SFTP
+# Deploy su freezer.francescomelani.com (Hostinger) via SSH/SFTP
 # Build Angular in app/ e carica l'output su Hostinger (connessione cifrata).
 # Si attiva su push sul branch main, oppure manualmente.
 # Secrets richiesti: HOSTINGER_SSH_USER, HOSTINGER_SSH_HOST, HOSTINGER_SSH_PORT, HOSTINGER_SSH_PRIVATE_KEY
 
-name: Deploy to dev.francescomelani.com
+name: Deploy to freezer.francescomelani.com
 
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
           port: ${{ secrets.HOSTINGER_SSH_PORT }}
           ssh_private_key: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
           local_path: "./app/dist/app/browser/*"
-          remote_path: "/home/u705656439/domains/francescomelani.com/public_html/dev"
+          remote_path: "/home/u705656439/domains/francescomelani.com/public_html/freezer"
           sftp_only: true
           sftpArgs: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20"
 
@@ -61,7 +61,7 @@ jobs:
           port: ${{ secrets.HOSTINGER_SSH_PORT }}
           ssh_private_key: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
           local_path: "./app/dist/app/browser/.htaccess"
-          remote_path: "/home/u705656439/domains/francescomelani.com/public_html/dev"
+          remote_path: "/home/u705656439/domains/francescomelani.com/public_html/freezer"
           sftp_only: true
           sftpArgs: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20"
 
@@ -76,7 +76,7 @@ jobs:
           port: ${{ secrets.HOSTINGER_SSH_PORT }}
           ssh_private_key: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
           local_path: "./backend.tar.gz"
-          remote_path: "/home/u705656439/domains/francescomelani.com/public_html/dev"
+          remote_path: "/home/u705656439/domains/francescomelani.com/public_html/freezer"
           sftp_only: true
           sftpArgs: "-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20"
 
@@ -88,7 +88,7 @@ jobs:
           key: ${{ secrets.HOSTINGER_SSH_PRIVATE_KEY }}
           port: ${{ secrets.HOSTINGER_SSH_PORT }}
           script: |
-            cd /home/u705656439/domains/francescomelani.com/public_html/dev
+            cd /home/u705656439/domains/francescomelani.com/public_html/freezer
             cp backend/.env /tmp/backend_env_backup 2>/dev/null || true
             rm -rf backend
             tar -xzf backend.tar.gz
