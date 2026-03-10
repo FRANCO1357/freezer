@@ -25,11 +25,9 @@
           <th>Freezer</th>
           <th>Prodotto</th>
           <th>Marca</th>
-          <th>Tag</th>
-          <th>Scadenza</th>
+          <th>Categoria</th>
           <th>Peso/Quantità</th>
           <th>Pezzi</th>
-          <th>Note</th>
         </tr>
       </thead>
       <tbody>
@@ -52,18 +50,17 @@
             <td [class.history-modified-cell]="log.modified_fields?.includes('name')">{{ log.product_name }}</td>
             <td>{{ log.brand ?? '-' }}</td>
             <td>
-              @if (log.tags_snapshot?.length) {
-                @for (t of log.tags_snapshot; track t) {
-                  <span class="badge bg-secondary me-1">{{ t }}</span>
-                }
+              @if (log.icon) {
+                <div class="d-flex flex-column align-items-center gap-1">
+                  <img [src]="'/icons/' + log.icon + '.png'" [alt]="iconLabel(log.icon)" width="28" height="28" style="object-fit: contain;" />
+                  <span class="small text-muted">{{ iconLabel(log.icon) }}</span>
+                </div>
               } @else {
-                -
+                <span class="text-muted">—</span>
               }
             </td>
-            <td>{{ log.expiry_date ? (log.expiry_date | date:'d/M/yyyy') : '-' }}</td>
             <td [class.history-modified-cell]="log.modified_fields?.includes('quantity')">{{ log.quantity != null ? log.quantity + ' ' + (log.quantity_unit ?? '') : '-' }}</td>
             <td [class.history-modified-cell]="log.modified_fields?.includes('pieces')">{{ log.pieces != null && log.pieces > 0 ? log.pieces : '-' }}</td>
-            <td><span [title]="log.notes ?? ''">{{ (log.notes ?? '-') | slice:0:30 }}{{ (log.notes?.length ?? 0) > 30 ? '…' : '' }}</span></td>
           </tr>
         }
       </tbody>

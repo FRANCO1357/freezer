@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HistoryService, FreezerLog } from '../../services/history.service';
+import { PRODUCT_ICONS } from '../../constants/product-icons';
 
 const MODIFIED_FIELD_LABELS: Record<string, string> = {
   name: 'nome',
@@ -42,6 +43,12 @@ export class HistoryComponent implements OnInit {
     const fields = log.modified_fields ?? [];
     if (fields.length === 0) return '';
     return fields.map((f) => MODIFIED_FIELD_LABELS[f] ?? f).join(' e ');
+  }
+
+  /** Nome della categoria dall'id icona (es. icona_brodo → Brodo) */
+  iconLabel(iconId: string | null | undefined): string {
+    if (!iconId) return '';
+    return PRODUCT_ICONS.find((o) => o.id === iconId)?.label ?? iconId;
   }
 
   ngOnInit(): void {

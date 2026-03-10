@@ -14,6 +14,7 @@ class FreezerLog extends Model
         'modified_fields',
         'product_id',
         'product_name',
+        'icon',
         'brand',
         'product_image_path',
         'expiry_date',

@@ -11,6 +11,7 @@ export interface FreezerLog {
   modified_fields?: string[] | null;
   product_id: number | null;
   product_name: string;
+  icon: string | null;
   brand: string | null;
   product_image_path: string | null;
   expiry_date: string | null;
