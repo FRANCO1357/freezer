@@ -16,18 +16,24 @@
 
   <form [formGroup]="form" (ngSubmit)="submit()">
     <div class="mb-3">
-      <label class="form-label">Freezer</label>
-      <select class="form-select" formControlName="freezer_id" [disabled]="isEdit()">
+      <label class="form-label">Freezer <span class="text-danger" aria-hidden="true">*</span></label>
+      <select class="form-select" formControlName="freezer_id" [class.is-invalid]="form.get('freezer_id')?.invalid && form.get('freezer_id')?.touched">
         <option [ngValue]="null">Seleziona freezer</option>
         @for (f of freezers(); track f.id) {
           <option [ngValue]="f.id">{{ f.name }}</option>
         }
       </select>
+      @if (form.get('freezer_id')?.invalid && form.get('freezer_id')?.touched) {
+        <div class="invalid-feedback d-block">Seleziona un freezer.</div>
+      }
     </div>
 
     <div class="mb-3">
-      <label class="form-label">Nome prodotto</label>
-      <input type="text" class="form-control" formControlName="name" placeholder="Es. Pollo, Salmone" />
+      <label class="form-label">Nome prodotto <span class="text-danger" aria-hidden="true">*</span></label>
+      <input type="text" class="form-control" formControlName="name" placeholder="Es. Pollo, Salmone" [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched" />
+      @if (form.get('name')?.invalid && form.get('name')?.touched) {
+        <div class="invalid-feedback d-block">Inserisci il nome del prodotto.</div>
+      }
     </div>
 
     <div class="mb-3">
@@ -77,21 +83,21 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label">Tag</label>
-      <div class="d-flex flex-wrap gap-2">
-        @for (t of tags(); track t.id) {
-          <label class="form-check-label border rounded px-2 py-1 d-inline-flex align-items-center gap-1 cursor-pointer" [class.bg-secondary]="!t.color" [style.background-color]="t.color || null" [style.color]="t.color ? tagTextColor(t.color) : '#fff'">
-            <input type="checkbox" [checked]="form.get('tag_ids')?.value?.includes(t.id)" (change)="toggleTag(t.id)" class="form-check-input me-1" />
-            @if (t.icon) {
-              <i class="ph ph-{{ t.icon }}" aria-hidden="true"></i>
-            }
-            {{ t.name }}
+      <label class="form-label">Categoria / Icona</label>
+      <div class="d-flex flex-wrap gap-3">
+        <label class="d-flex flex-column align-items-center gap-1 text-center cursor-pointer border rounded p-2 product-icon-option" [class.border-primary]="!form.get('icon')?.value" [class.bg-light]="!form.get('icon')?.value" style="min-width: 72px;">
+          <input type="radio" value="" formControlName="icon" class="visually-hidden" />
+          <span class="small text-muted">Nessuna</span>
+        </label>
+        @for (opt of productIcons; track opt.id) {
+          <label class="d-flex flex-column align-items-center gap-1 text-center cursor-pointer border rounded p-2 product-icon-option" [class.border-primary]="form.get('icon')?.value === opt.id" [class.bg-light]="form.get('icon')?.value === opt.id" style="min-width: 72px;">
+            <input type="radio" [value]="opt.id" formControlName="icon" class="visually-hidden" />
+            <img [src]="iconUrl(opt.id)" [alt]="opt.label" width="40" height="40" style="object-fit: contain;" />
+            <span class="small">{{ opt.label }}</span>
           </label>
         }
       </div>
-      @if (tags().length === 0) {
-        <p class="small text-muted">Nessun tag. Aggiungine dalla pagina "I miei freezer".</p>
-      }
+      <small class="text-muted">Opzionale: scegli un'icona per il prodotto.</small>
     </div>
 
     <div class="d-flex gap-2">

@@ -8,6 +8,7 @@ export interface FreezerLog {
   user_id: number;
   freezer_id: number;
   action: 'added' | 'removed' | 'quantity_updated';
+  modified_fields?: string[] | null;
   product_id: number | null;
   product_name: string;
   brand: string | null;

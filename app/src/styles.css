@@ -1,5 +1,18 @@
 /* You can add global styles to this file, and also import other style files */
 
+/* Sfondo app: immagine ghiaccio */
+body {
+  background-image: url('/background/ice_background.png');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+  min-height: 100vh;
+}
+
+.app-main-wrapper {
+  min-height: 100vh;
+}
+
 /* Tabelle prodotti: su mobile niente scroll orizzontale, tabella si adatta */
 .products-table-wrapper {
   overflow-x: auto;
@@ -32,4 +45,18 @@
   .products-table-actions .btn {
     padding: 0.2rem 0.35rem;
   }
+}
+
+.product-icon-option {
+  cursor: pointer;
+}
+.product-icon-option:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Storico: evidenzia le celle che sono state modificate (peso/quantità, pezzi) */
+.history-modified-cell {
+  background-color: rgba(255, 193, 7, 0.25);
+  text-decoration: underline;
+  font-weight: 500;
 }

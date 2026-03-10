@@ -21,11 +21,11 @@
           <input type="text" class="form-control form-control-sm" placeholder="Cerca per nome..." [ngModel]="nameFilter()" (ngModelChange)="nameFilter.set($event)" style="min-width: 160px;" />
         </div>
         <div class="col-auto">
-          <label class="form-label mb-0 small text-muted">Tag</label>
-          <select class="form-select form-select-sm" [ngModel]="tagFilterId() ?? ''" (ngModelChange)="tagFilterId.set($event === '' ? null : +$event)" style="min-width: 140px;">
-            <option value="">Tutti i tag</option>
-            @for (t of tags(); track t.id) {
-              <option [value]="t.id">{{ t.name }}</option>
+          <label class="form-label mb-0 small text-muted">Categoria</label>
+          <select class="form-select form-select-sm" [ngModel]="iconFilter() ?? ''" (ngModelChange)="iconFilter.set($event === '' ? null : $event)" style="min-width: 140px;">
+            <option value="">Tutte</option>
+            @for (opt of productIcons; track opt.id) {
+              <option [value]="opt.id">{{ opt.label }}</option>
             }
           </select>
         </div>
@@ -44,7 +44,7 @@
       <thead class="table-light">
         <tr>
           <th>Nome</th>
-          <th>Tag</th>
+          <th>Categoria</th>
           <th>Data</th>
           <th>Quantità</th>
           <th class="d-none d-md-table-cell">Pezzi</th>
@@ -56,15 +56,8 @@
           <tr>
             <td><strong>{{ p.name }}</strong></td>
             <td>
-              @if (p.tags?.length) {
-                @for (t of p.tags; track t.id) {
-                  <span class="badge me-1 d-inline-flex align-items-center gap-1" [class.bg-secondary]="!t.color" [style.background-color]="t.color || null" [style.color]="t.color ? tagTextColor(t.color) : '#fff'">
-                    @if (t.icon) {
-                      <i class="ph ph-{{ t.icon }}" aria-hidden="true"></i>
-                    }
-                    {{ t.name }}
-                  </span>
-                }
+              @if (p.icon) {
+                <img [src]="'/icons/' + p.icon + '.png'" [alt]="p.icon" width="28" height="28" style="object-fit: contain;" />
               } @else {
                 <span class="text-muted">—</span>
               }

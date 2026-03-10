@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ProductService, Product } from '../../services/product.service';
 import { FreezerService, Freezer } from '../../services/freezer.service';
-import { TagService, Tag } from '../../services/tag.service';
+import { PRODUCT_ICONS } from '../../constants/product-icons';
 
 @Component({
   selector: 'app-all-products',
@@ -15,27 +15,28 @@ import { TagService, Tag } from '../../services/tag.service';
 export class AllProductsComponent implements OnInit {
   private productService = inject(ProductService);
   private freezerService = inject(FreezerService);
-  private tagService = inject(TagService);
+
+  protected readonly productIcons = PRODUCT_ICONS;
+
   products = signal<Product[]>([]);
   freezers = signal<Freezer[]>([]);
-  tags = signal<Tag[]>([]);
   loading = signal(true);
 
   nameFilter = signal('');
   freezerFilterId = signal<number | null>(null);
-  tagFilterId = signal<number | null>(null);
+  iconFilter = signal<string | null>(null);
   sortOrder = signal<'newest' | 'oldest'>('newest');
 
   filteredProducts = computed(() => {
     const list = this.products();
     const name = this.nameFilter().trim().toLowerCase();
     const freezerId = this.freezerFilterId();
-    const tagId = this.tagFilterId();
+    const iconKey = this.iconFilter();
     const order = this.sortOrder();
     let result = list.filter((p) => {
       if (name && !p.name.toLowerCase().includes(name)) return false;
       if (freezerId != null && p.freezer_id !== freezerId) return false;
-      if (tagId != null && !p.tags?.some((t) => t.id === tagId)) return false;
+      if (iconKey != null && p.icon !== iconKey) return false;
       return true;
     });
     result = [...result].sort((a, b) => {
@@ -46,19 +47,8 @@ export class AllProductsComponent implements OnInit {
     return result;
   });
 
-  /** Colore testo leggibile su sfondo hex. */
-  tagTextColor(hex: string): string {
-    if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return '#fff';
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.5 ? '#000' : '#fff';
-  }
-
   ngOnInit(): void {
     this.freezerService.list().subscribe((list) => this.freezers.set(list));
-    this.tagService.list().subscribe((list) => this.tags.set(list));
     this.productService.list().subscribe({
       next: (list) => {
         this.products.set(list);

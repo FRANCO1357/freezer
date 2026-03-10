@@ -27,6 +27,7 @@ export interface Product {
   quantity_unit: string | null;
   pieces: number | null;
   notes: string | null;
+  icon: string | null;
   created_at: string;
   updated_at: string;
   freezer?: Freezer;
@@ -42,7 +43,7 @@ export interface ProductForm {
   quantity_unit?: string | null;
   pieces?: number | null;
   notes?: string | null;
-  tag_ids?: number[];
+  icon?: string | null;
   image?: File;
 }
 
@@ -73,13 +74,14 @@ export class ProductService {
     if (form.quantity_unit) body.set('quantity_unit', form.quantity_unit ?? '');
     if (form.pieces != null) body.set('pieces', String(form.pieces));
     if (form.notes) body.set('notes', form.notes);
-    if (form.tag_ids?.length) body.set('tag_ids', JSON.stringify(form.tag_ids));
+    if (form.icon) body.set('icon', form.icon);
     if (form.image) body.set('image', form.image);
     return this.http.post<Product>(`${this.api}/products`, body);
   }
 
   update(id: number, form: Partial<ProductForm>): Observable<Product> {
     const body = new FormData();
+    if (form.freezer_id != null) body.set('freezer_id', String(form.freezer_id));
     body.set('name', form.name ?? '');
     body.set('brand', form.brand ?? '');
     body.set('expiry_date', form.expiry_date ?? '');
@@ -87,7 +89,7 @@ export class ProductService {
     body.set('quantity_unit', form.quantity_unit ?? '');
     body.set('pieces', form.pieces != null ? String(form.pieces) : '');
     body.set('notes', form.notes ?? '');
-    body.set('tag_ids', JSON.stringify(form.tag_ids ?? []));
+    body.set('icon', form.icon ?? '');
     if (form.image) body.set('image', form.image);
     return this.http.post<Product>(`${this.api}/products/${id}/update`, body);
   }

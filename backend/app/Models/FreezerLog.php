@@ -11,6 +11,7 @@ class FreezerLog extends Model
         'user_id',
         'freezer_id',
         'action',
+        'modified_fields',
         'product_id',
         'product_name',
         'brand',
@@ -29,6 +30,7 @@ class FreezerLog extends Model
             'expiry_date' => 'date',
             'quantity' => 'decimal:2',
             'tags_snapshot' => 'array',
+            'modified_fields' => 'array',
         ];
     }
 

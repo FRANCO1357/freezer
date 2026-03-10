@@ -3,6 +3,19 @@
 @if (loading()) {
   <p class="text-muted">Caricamento...</p>
 } @else {
+  <div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+      <div class="row g-2 align-items-end">
+        <div class="col-auto">
+          <label class="form-label mb-0 small text-muted">Filtra per data</label>
+          <input type="date" class="form-control form-control-sm" [ngModel]="dateFilter()" (ngModelChange)="dateFilter.set($event)" style="min-width: 160px;" />
+        </div>
+        <div class="col-auto">
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dateFilter.set('')">Tutti i giorni</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="table-responsive">
     <table class="table table-hover">
       <thead>
@@ -20,7 +33,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (log of logs(); track log.id) {
+        @for (log of filteredLogs(); track log.id) {
           <tr>
             <td>{{ log.created_at | date:'d/M/yyyy HH:mm' }}</td>
             <td>
@@ -30,10 +43,13 @@
                 <span class="badge bg-danger">Rimosso</span>
               } @else {
                 <span class="badge bg-primary">Modificato</span>
+                @if (getModificationLabel(log)) {
+                  <span class="small text-muted ms-1">({{ getModificationLabel(log) }})</span>
+                }
               }
             </td>
-            <td>{{ log.freezer?.name ?? '-' }}</td>
-            <td>{{ log.product_name }}</td>
+            <td [class.history-modified-cell]="log.modified_fields?.includes('freezer')">{{ log.freezer?.name ?? '-' }}</td>
+            <td [class.history-modified-cell]="log.modified_fields?.includes('name')">{{ log.product_name }}</td>
             <td>{{ log.brand ?? '-' }}</td>
             <td>
               @if (log.tags_snapshot?.length) {
@@ -45,15 +61,21 @@
               }
             </td>
             <td>{{ log.expiry_date ? (log.expiry_date | date:'d/M/yyyy') : '-' }}</td>
-            <td>{{ log.quantity != null ? log.quantity + ' ' + (log.quantity_unit ?? '') : '-' }}</td>
-            <td>{{ log.pieces != null && log.pieces > 0 ? log.pieces : '-' }}</td>
+            <td [class.history-modified-cell]="log.modified_fields?.includes('quantity')">{{ log.quantity != null ? log.quantity + ' ' + (log.quantity_unit ?? '') : '-' }}</td>
+            <td [class.history-modified-cell]="log.modified_fields?.includes('pieces')">{{ log.pieces != null && log.pieces > 0 ? log.pieces : '-' }}</td>
             <td><span [title]="log.notes ?? ''">{{ (log.notes ?? '-') | slice:0:30 }}{{ (log.notes?.length ?? 0) > 30 ? '…' : '' }}</span></td>
           </tr>
         }
       </tbody>
     </table>
   </div>
-  @if (logs().length === 0) {
-    <p class="text-muted">Nessuna operazione nello storico.</p>
+  @if (filteredLogs().length === 0) {
+    <p class="text-muted">
+      @if (dateFilter()) {
+        Nessuna operazione in questa data.
+      } @else {
+        Nessuna operazione nello storico.
+      }
+    </p>
   }
 }

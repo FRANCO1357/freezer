@@ -160,6 +160,7 @@ Route::middleware('auth:sanctum')->group(function () {
             'quantity_unit' => 'nullable|string|max:20',
             'pieces' => 'nullable|integer|min:1',
             'notes' => 'nullable|string|max:2000',
+            'icon' => 'nullable|string|max:80',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
         ]);
@@ -213,6 +214,7 @@ Route::middleware('auth:sanctum')->group(function () {
             'quantity_unit' => 'nullable|string|max:20',
             'pieces' => 'nullable|integer|min:1',
             'notes' => 'nullable|string|max:2000',
+            'icon' => 'nullable|string|max:80',
             'tag_ids' => 'nullable|array',
             'tag_ids.*' => 'exists:tags,id',
         ]);
@@ -232,9 +234,17 @@ Route::middleware('auth:sanctum')->group(function () {
         if ($product->freezer->user_id !== $request->user()->id) abort(404);
         $tagIdsRaw = $request->input('tag_ids');
         $tagIds = is_string($tagIdsRaw) ? json_decode($tagIdsRaw, true) : $tagIdsRaw;
+        $oldName = $product->name;
+        $oldFreezerId = $product->freezer_id;
         $oldQuantity = $product->quantity;
         $oldPieces = $product->pieces;
+        $iconVal = $request->input('icon');
+        $newFreezerId = $request->input('freezer_id') ? (int) $request->input('freezer_id') : null;
+        if ($newFreezerId && $request->user()->freezers()->where('id', $newFreezerId)->exists() === false) {
+            abort(422, 'Freezer non valido.');
+        }
         $data = [
+            'freezer_id' => $newFreezerId ?: $product->freezer_id,
             'name' => $request->input('name'),
             'brand' => $request->input('brand') ?: null,
             'expiry_date' => $request->input('expiry_date') ?: null,
@@ -242,8 +252,10 @@ Route::middleware('auth:sanctum')->group(function () {
             'quantity_unit' => $request->input('quantity_unit') ?: null,
             'pieces' => $request->input('pieces') !== '' && $request->input('pieces') !== null ? (int) $request->input('pieces') : null,
             'notes' => $request->input('notes') ?: null,
+            'icon' => $iconVal === '' || $iconVal === null ? null : $iconVal,
         ];
         $request->validate([
+            'freezer_id' => 'required|exists:freezers,id',
             'name' => 'required|string|max:255',
             'brand' => 'nullable|string|max:255',
             'expiry_date' => 'nullable|date',
@@ -259,15 +271,27 @@ Route::middleware('auth:sanctum')->group(function () {
         $product->update($data);
         if (is_array($tagIds)) $product->tags()->sync(array_unique($tagIds));
 
-        // Storico: registra modifica peso/quantità se sono cambiati
-        $quantityChanged = (string) ($oldQuantity ?? '') !== (string) ($data['quantity'] ?? '');
-        $piecesChanged = (int) ($oldPieces ?? 0) !== (int) ($data['pieces'] ?? 0);
-        if ($quantityChanged || $piecesChanged) {
+        // Storico: registra modifica se nome, freezer, peso o pezzi sono cambiati
+        $nameChanged = trim((string) $oldName) !== trim((string) ($data['name'] ?? ''));
+        $freezerChanged = (int) $oldFreezerId !== (int) ($data['freezer_id'] ?? 0);
+        $newQty = $data['quantity'];
+        $newPcs = $data['pieces'];
+        $quantityChanged = ($oldQuantity === null || $oldQuantity === '') !== ($newQty === null)
+            || ($newQty !== null && abs((float) $oldQuantity - (float) $newQty) >= 0.001);
+        $piecesChanged = (int) ($oldPieces ?? 0) !== (int) ($newPcs ?? 0);
+        $modifiedFields = array_values(array_filter([
+            $nameChanged ? 'name' : null,
+            $freezerChanged ? 'freezer' : null,
+            $quantityChanged ? 'quantity' : null,
+            $piecesChanged ? 'pieces' : null,
+        ]));
+        if ($modifiedFields !== []) {
             $product->load('tags');
             FreezerLog::create([
                 'user_id' => $request->user()->id,
                 'freezer_id' => $product->freezer_id,
                 'action' => 'quantity_updated',
+                'modified_fields' => $modifiedFields,
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'brand' => $product->brand,

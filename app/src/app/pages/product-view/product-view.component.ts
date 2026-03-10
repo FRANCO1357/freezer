@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductService, Product } from '../../services/product.service';
 import { ProductImageUrlPipe } from '../../pipes/product-image-url.pipe';
+import { PRODUCT_ICONS } from '../../constants/product-icons';
 
 @Component({
   selector: 'app-product-view',
@@ -13,17 +14,21 @@ import { ProductImageUrlPipe } from '../../pipes/product-image-url.pipe';
 export class ProductViewComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
+
+  protected readonly productIcons = PRODUCT_ICONS;
+
   product = signal<Product | null>(null);
   loading = signal(true);
 
-  /** Colore testo leggibile su sfondo hex. */
-  tagTextColor(hex: string): string {
-    if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return '#fff';
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.5 ? '#000' : '#fff';
+  /** Se presente, usato per il link Modifica così dopo il salvataggio si torna alla lista corretta */
+  get returnTo(): Record<string, string> | null {
+    const v = this.route.snapshot.queryParamMap.get('returnTo');
+    return v ? { returnTo: v } : null;
+  }
+
+  iconLabel(iconId: string | null | undefined): string {
+    if (!iconId) return '';
+    return this.productIcons.find((o) => o.id === iconId)?.label ?? iconId;
   }
 
   ngOnInit(): void {

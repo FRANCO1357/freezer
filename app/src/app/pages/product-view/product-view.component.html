@@ -14,7 +14,7 @@
   @let p = product()!;
   <div class="d-flex justify-content-between align-items-start mb-4">
     <h1 class="h3 mb-0">{{ p.name }}</h1>
-    <a [routerLink]="['/area-riservata/prodotto', p.id]" class="btn btn-primary">Modifica</a>
+    <a [routerLink]="['/area-riservata/prodotto', p.id]" [queryParams]="returnTo" class="btn btn-primary">Modifica</a>
   </div>
 
   <div class="row">
@@ -51,17 +51,11 @@
           <dd class="col-sm-9">{{ p.pieces }}</dd>
         }
 
-        @if (p.tags?.length) {
-          <dt class="col-sm-3 text-muted">Tag</dt>
-          <dd class="col-sm-9">
-            @for (t of p.tags; track t.id) {
-              <span class="badge me-1 d-inline-flex align-items-center gap-1" [class.bg-secondary]="!t.color" [style.background-color]="t.color || null" [style.color]="t.color ? tagTextColor(t.color) : '#fff'">
-                @if (t.icon) {
-                  <i class="ph ph-{{ t.icon }}" aria-hidden="true"></i>
-                }
-                {{ t.name }}
-              </span>
-            }
+        @if (p.icon) {
+          <dt class="col-sm-3 text-muted">Categoria</dt>
+          <dd class="col-sm-9 d-flex align-items-center gap-2">
+            <img [src]="'/icons/' + p.icon + '.png'" [alt]="iconLabel(p.icon)" width="32" height="32" style="object-fit: contain;" />
+            <span>{{ iconLabel(p.icon) }}</span>
           </dd>
         }
 

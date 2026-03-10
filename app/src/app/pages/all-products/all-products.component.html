@@ -20,11 +20,11 @@
           </select>
         </div>
         <div class="col-auto">
-          <label class="form-label mb-0 small text-muted">Tag</label>
-          <select class="form-select form-select-sm" [ngModel]="tagFilterId() ?? ''" (ngModelChange)="tagFilterId.set($event === '' ? null : +$event)" style="min-width: 140px;">
-            <option value="">Tutti i tag</option>
-            @for (t of tags(); track t.id) {
-              <option [value]="t.id">{{ t.name }}</option>
+          <label class="form-label mb-0 small text-muted">Categoria</label>
+          <select class="form-select form-select-sm" [ngModel]="iconFilter() ?? ''" (ngModelChange)="iconFilter.set($event === '' ? null : $event)" style="min-width: 140px;">
+            <option value="">Tutte</option>
+            @for (opt of productIcons; track opt.id) {
+              <option [value]="opt.id">{{ opt.label }}</option>
             }
           </select>
         </div>
@@ -44,7 +44,7 @@
         <tr>
           <th>Nome</th>
           <th class="d-none d-md-table-cell">Freezer</th>
-          <th>Tag</th>
+          <th>Categoria</th>
           <th>Data</th>
           <th>Quantità</th>
           <th class="d-none d-md-table-cell">Pezzi</th>
@@ -60,14 +60,8 @@
             </td>
             <td class="d-none d-md-table-cell">{{ p.freezer?.name ?? '—' }}</td>
             <td>
-              @if (p.tags?.length) {
-                @for (t of p.tags; track t.id) {
-                  @if (t.icon) {
-                    <span class="badge me-1" [class.bg-secondary]="!t.color" [style.background-color]="t.color || null" [style.color]="t.color ? tagTextColor(t.color) : '#fff'" [title]="t.name" aria-label="{{ t.name }}"><i class="ph ph-{{ t.icon }}" aria-hidden="true"></i></span>
-                  } @else {
-                    <span class="badge me-1" [class.bg-secondary]="!t.color" [style.background-color]="t.color || null" [style.color]="t.color ? tagTextColor(t.color) : '#fff'">{{ t.name }}</span>
-                  }
-                }
+              @if (p.icon) {
+                <img [src]="'/icons/' + p.icon + '.png'" [alt]="p.icon" width="28" height="28" style="object-fit: contain;" />
               } @else {
                 <span class="text-muted">—</span>
               }
@@ -79,8 +73,8 @@
             </td>
             <td class="d-none d-md-table-cell">{{ p.pieces != null && p.pieces > 0 ? p.pieces : '—' }}</td>
             <td class="text-end products-table-actions">
-              <a [routerLink]="['/area-riservata/prodotto', p.id, 'visualizza']" class="btn btn-outline-secondary btn-sm me-1" title="Visualizza"><i class="bi bi-eye"></i></a>
-              <a [routerLink]="['/area-riservata/prodotto', p.id]" class="btn btn-outline-primary btn-sm me-1" title="Modifica"><i class="bi bi-pencil"></i></a>
+              <a [routerLink]="['/area-riservata/prodotto', p.id, 'visualizza']" [queryParams]="{ returnTo: 'tutti-i-prodotti' }" class="btn btn-outline-secondary btn-sm me-1" title="Visualizza"><i class="bi bi-eye"></i></a>
+              <a [routerLink]="['/area-riservata/prodotto', p.id]" [queryParams]="{ returnTo: 'tutti-i-prodotti' }" class="btn btn-outline-primary btn-sm me-1" title="Modifica"><i class="bi bi-pencil"></i></a>
               <button type="button" class="btn btn-outline-danger btn-sm" (click)="deleteProduct(p, $event)" title="Rimuovi"><i class="bi bi-trash"></i></button>
             </td>
           </tr>

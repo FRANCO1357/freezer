@@ -19,6 +19,7 @@ class Product extends Model
         'quantity_unit',
         'pieces',
         'notes',
+        'icon',
     ];
 
     protected $appends = ['image_url'];

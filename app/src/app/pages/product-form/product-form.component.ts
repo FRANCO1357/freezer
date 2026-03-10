@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FreezerService, Freezer } from '../../services/freezer.service';
-import { TagService, Tag } from '../../services/tag.service';
 import { ProductService, Product, ProductForm } from '../../services/product.service';
 import { ProductImageUrlPipe } from '../../pipes/product-image-url.pipe';
+import { PRODUCT_ICONS, productIconUrl } from '../../constants/product-icons';
 
 @Component({
   selector: 'app-product-form',
@@ -18,11 +18,12 @@ export class ProductFormComponent implements OnInit {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private freezerService = inject(FreezerService);
-  private tagService = inject(TagService);
   private productService = inject(ProductService);
 
+  protected readonly productIcons = PRODUCT_ICONS;
+  protected readonly iconUrl = productIconUrl;
+
   freezers = signal<Freezer[]>([]);
-  tags = signal<Tag[]>([]);
   product = signal<Product | null>(null);
   loading = signal(true);
   saving = signal(false);
@@ -42,7 +43,7 @@ export class ProductFormComponent implements OnInit {
     quantity_unit: [''],
     pieces: [null as number | null],
     notes: [''],
-    tag_ids: [[] as number[]],
+    icon: ['' as string],
   });
 
   ngOnInit(): void {
@@ -50,7 +51,6 @@ export class ProductFormComponent implements OnInit {
     const freezerIdParam = this.route.snapshot.queryParamMap.get('freezer_id');
 
     this.freezerService.list().subscribe((list) => this.freezers.set(list));
-    this.tagService.list().subscribe((list) => this.tags.set(list));
 
     if (id && id !== 'nuovo') {
       this.productService.get(Number(id)).subscribe({
@@ -65,7 +65,7 @@ export class ProductFormComponent implements OnInit {
             quantity_unit: p.quantity_unit ?? '',
             pieces: p.pieces ?? null,
             notes: p.notes ?? '',
-            tag_ids: p.tags?.map((t) => t.id) ?? [],
+            icon: p.icon ?? '',
           });
           if (p.image_url) this.imagePreview.set(p.image_url);
           this.loading.set(false);
@@ -102,24 +102,6 @@ export class ProductFormComponent implements OnInit {
     this.form.patchValue({ pieces: next });
   }
 
-  /** Colore testo leggibile su sfondo hex (bianco o nero). */
-  tagTextColor(hex: string): string {
-    if (!hex || !/^#[0-9A-Fa-f]{6}$/.test(hex)) return '#fff';
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.5 ? '#000' : '#fff';
-  }
-
-  toggleTag(tagId: number): void {
-    const arr = this.form.get('tag_ids')?.value ?? [];
-    const set = new Set(arr);
-    if (set.has(tagId)) set.delete(tagId);
-    else set.add(tagId);
-    this.form.patchValue({ tag_ids: [...set] });
-  }
-
   submit(): void {
     this.error.set('');
     if (this.form.invalid) {
@@ -138,15 +120,21 @@ export class ProductFormComponent implements OnInit {
       quantity_unit: v.quantity_unit || null,
       pieces: v.pieces ?? null,
       notes: v.notes || null,
-      tag_ids: v.tag_ids ?? [],
+      icon: v.icon || null,
       image: this.imageFile() ?? undefined,
     };
+
+    const returnTo = this.route.snapshot.queryParamMap.get('returnTo');
 
     if (this.isEdit()) {
       this.productService.update(this.product()!.id, payload).subscribe({
         next: () => {
           this.saving.set(false);
-          this.router.navigate(['/area-riservata/freezers', v.freezer_id]);
+          if (returnTo === 'tutti-i-prodotti') {
+            this.router.navigate(['/area-riservata/tutti-i-prodotti']);
+          } else {
+            this.router.navigate(['/area-riservata/freezers', v.freezer_id]);
+          }
         },
         error: (err) => {
           this.saving.set(false);
@@ -157,7 +145,11 @@ export class ProductFormComponent implements OnInit {
       this.productService.create(payload as ProductForm).subscribe({
         next: (created) => {
           this.saving.set(false);
-          this.router.navigate(['/area-riservata/freezers', created.freezer_id]);
+          if (returnTo === 'tutti-i-prodotti') {
+            this.router.navigate(['/area-riservata/tutti-i-prodotti']);
+          } else {
+            this.router.navigate(['/area-riservata/freezers', created.freezer_id]);
+          }
         },
         error: (err) => {
           this.saving.set(false);
