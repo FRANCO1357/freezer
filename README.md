@@ -113,6 +113,7 @@ cd backend
 cp .env.example .env
 php artisan key:generate
 composer install
+php artisan storage:link   # necessario per vedere le immagini prodotti (link public/storage → storage/app/public)
 ```
 
 Poi in **`backend/.env`** imposta le variabili DB (Hostinger o MAMP, vedi sotto).
@@ -172,6 +173,7 @@ Eseguire **sul server** (non in locale):
    cd domains/francescomelani.com/public_html/freezer/backend
    /opt/alt/php84/usr/bin/php artisan migrate --force
    /opt/alt/php84/usr/bin/php artisan db:seed --force
+   /opt/alt/php84/usr/bin/php artisan storage:link   # immagini prodotti (se non già fatto)
    exit
    ```
    Se il path non esiste, in **hPanel** → **Advanced** → **PHP Configuration** verifica le versioni disponibili; a volte è `php82` o `php83` in `/opt/alt/phpXX/usr/bin/php`.

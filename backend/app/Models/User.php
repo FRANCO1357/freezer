@@ -46,4 +46,19 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function freezers(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Freezer::class);
+    }
+
+    public function tags(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Tag::class);
+    }
+
+    public function freezerLogs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(FreezerLog::class);
+    }
 }

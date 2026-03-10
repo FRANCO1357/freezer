@@ -1,0 +1,75 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a routerLink="/area-riservata/freezers">Freezer</a></li>
+    <li class="breadcrumb-item"><a routerLink="/area-riservata/tutti-i-prodotti">Prodotti</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ product()?.name ?? 'Prodotto' }}</li>
+  </ol>
+</nav>
+
+@if (loading()) {
+  <p class="text-muted">Caricamento...</p>
+} @else if (!product()) {
+  <p class="text-muted">Prodotto non trovato.</p>
+} @else {
+  @let p = product()!;
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <h1 class="h3 mb-0">{{ p.name }}</h1>
+    <a [routerLink]="['/area-riservata/prodotto', p.id]" class="btn btn-primary">Modifica</a>
+  </div>
+
+  <div class="row">
+    @if (p.image_url) {
+      <div class="col-md-4 col-lg-3 mb-4">
+        <img [src]="p.image_url | productImageUrl" alt="" class="img-fluid rounded shadow-sm" style="max-height: 240px; object-fit: cover;" />
+      </div>
+    }
+    <div class="col">
+      <dl class="row mb-0">
+        <dt class="col-sm-3 text-muted">Freezer</dt>
+        <dd class="col-sm-9">{{ p.freezer?.name ?? '—' }}</dd>
+
+        @if (p.brand) {
+          <dt class="col-sm-3 text-muted">Marca</dt>
+          <dd class="col-sm-9">{{ p.brand }}</dd>
+        }
+
+        <dt class="col-sm-3 text-muted">Data di aggiunta</dt>
+        <dd class="col-sm-9">{{ p.created_at ? (p.created_at | date:'d/M/yyyy') : '—' }}</dd>
+
+        @if (p.expiry_date) {
+          <dt class="col-sm-3 text-muted">Scadenza</dt>
+          <dd class="col-sm-9">{{ p.expiry_date | date:'d/M/yyyy' }}</dd>
+        }
+
+        @if (p.quantity != null) {
+          <dt class="col-sm-3 text-muted">Quantità / Peso</dt>
+          <dd class="col-sm-9">{{ p.quantity }} {{ p.quantity_unit ?? '' }}</dd>
+        }
+
+        @if (p.pieces != null && p.pieces > 0) {
+          <dt class="col-sm-3 text-muted">Pezzi</dt>
+          <dd class="col-sm-9">{{ p.pieces }}</dd>
+        }
+
+        @if (p.tags?.length) {
+          <dt class="col-sm-3 text-muted">Tag</dt>
+          <dd class="col-sm-9">
+            @for (t of p.tags; track t.id) {
+              <span class="badge me-1 d-inline-flex align-items-center gap-1" [class.bg-secondary]="!t.color" [style.background-color]="t.color || null" [style.color]="t.color ? tagTextColor(t.color) : '#fff'">
+                @if (t.icon) {
+                  <i class="ph ph-{{ t.icon }}" aria-hidden="true"></i>
+                }
+                {{ t.name }}
+              </span>
+            }
+          </dd>
+        }
+
+        @if (p.notes) {
+          <dt class="col-sm-3 text-muted">Note</dt>
+          <dd class="col-sm-9">{{ p.notes }}</dd>
+        }
+      </dl>
+    </div>
+  </div>
+}

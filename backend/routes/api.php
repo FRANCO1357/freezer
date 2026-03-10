@@ -1,10 +1,15 @@
 <?php
 
+use App\Models\Freezer;
+use App\Models\FreezerLog;
+use App\Models\Product;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 // Rate limit: 5 tentativi login per minuto
@@ -23,9 +28,7 @@ Route::middleware('throttle:5,1')->group(function () {
             ]);
         }
 
-        // Revoca eventuali token precedenti (un solo dispositivo per semplicità)
         $user->tokens()->delete();
-
         $token = $user->createToken('login')->plainTextToken;
 
         return response()->json([
@@ -52,5 +55,278 @@ Route::middleware('auth:sanctum')->group(function () {
             'name' => $user->name,
             'email' => $user->email,
         ]);
+    });
+
+    // ---------- Freezers ----------
+    Route::get('/freezers', function (Request $request) {
+        return $request->user()->freezers()->orderBy('name')->get();
+    });
+
+    Route::post('/freezers', function (Request $request) {
+        $data = $request->validate(['name' => 'required|string|max:255']);
+        return $request->user()->freezers()->create($data);
+    });
+
+    Route::get('/freezers/{freezer}', function (Request $request, Freezer $freezer) {
+        if ($freezer->user_id !== $request->user()->id) {
+            abort(404);
+        }
+        return $freezer->load('products.tags');
+    });
+
+    Route::put('/freezers/{freezer}', function (Request $request, Freezer $freezer) {
+        if ($freezer->user_id !== $request->user()->id) {
+            abort(404);
+        }
+        $data = $request->validate(['name' => 'required|string|max:255']);
+        $freezer->update($data);
+        return $freezer;
+    });
+
+    Route::delete('/freezers/{freezer}', function (Request $request, Freezer $freezer) {
+        if ($freezer->user_id !== $request->user()->id) {
+            abort(404);
+        }
+        $freezer->delete();
+        return response()->json(null, 204);
+    });
+
+    // ---------- Tags ----------
+    Route::get('/tags', function (Request $request) {
+        return $request->user()->tags()->orderBy('name')->get();
+    });
+
+    Route::post('/tags', function (Request $request) {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'icon' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:20',
+        ]);
+        return $request->user()->tags()->create($data);
+    });
+
+    Route::put('/tags/{tag}', function (Request $request, Tag $tag) {
+        if ($tag->user_id !== $request->user()->id) {
+            abort(404);
+        }
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'icon' => 'nullable|string|max:50',
+            'color' => 'nullable|string|max:20',
+        ]);
+        $tag->update($data);
+        return $tag;
+    });
+
+    Route::delete('/tags/{tag}', function (Request $request, Tag $tag) {
+        if ($tag->user_id !== $request->user()->id) {
+            abort(404);
+        }
+        $tag->delete();
+        return response()->json(null, 204);
+    });
+
+    // ---------- Products ----------
+    // Tutti i prodotti (tutti i freezer) o solo di un freezer
+    Route::get('/products', function (Request $request) {
+        $user = $request->user();
+        $freezerId = $request->query('freezer_id');
+        if ($freezerId) {
+            $freezer = $user->freezers()->find($freezerId);
+            if (!$freezer) {
+                abort(404);
+            }
+            return $freezer->products()->with('tags')->orderBy('name')->get();
+        }
+        $freezers = $user->freezers()->pluck('id');
+        return Product::whereIn('freezer_id', $freezers)->with(['freezer', 'tags'])->orderBy('name')->get();
+    });
+
+    Route::post('/products', function (Request $request) {
+        $user = $request->user();
+        // FormData invia tag_ids come stringa JSON; convertiamo in array per la validazione
+        $tagIdsRaw = $request->input('tag_ids');
+        if (is_string($tagIdsRaw)) {
+            $decoded = json_decode($tagIdsRaw, true);
+            $request->merge(['tag_ids' => is_array($decoded) ? $decoded : []]);
+        }
+        $freezer = $user->freezers()->findOrFail($request->input('freezer_id'));
+        $data = $request->validate([
+            'freezer_id' => 'required|exists:freezers,id',
+            'name' => 'required|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'expiry_date' => 'nullable|date',
+            'quantity' => 'nullable|numeric|min:0',
+            'quantity_unit' => 'nullable|string|max:20',
+            'pieces' => 'nullable|integer|min:1',
+            'notes' => 'nullable|string|max:2000',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
+        ]);
+        $tagIds = $data['tag_ids'] ?? [];
+        unset($data['tag_ids']);
+
+        if ($request->hasFile('image')) {
+            $data['image_path'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product = $freezer->products()->create($data);
+        if (!empty($tagIds)) {
+            $product->tags()->sync(array_unique($tagIds));
+        }
+
+        FreezerLog::create([
+            'user_id' => $user->id,
+            'freezer_id' => $freezer->id,
+            'action' => 'added',
+            'product_id' => $product->id,
+            'product_name' => $product->name,
+            'brand' => $product->brand,
+            'product_image_path' => $product->image_path,
+            'expiry_date' => $product->expiry_date,
+            'quantity' => $product->quantity,
+            'quantity_unit' => $product->quantity_unit,
+            'pieces' => $product->pieces,
+            'notes' => $product->notes,
+            'tags_snapshot' => $product->tags->pluck('name')->values()->all(),
+        ]);
+
+        return $product->load('tags');
+    });
+
+    Route::get('/products/{product}', function (Request $request, Product $product) {
+        if ($product->freezer->user_id !== $request->user()->id) {
+            abort(404);
+        }
+        return $product->load(['freezer', 'tags']);
+    });
+
+    Route::put('/products/{product}', function (Request $request, Product $product) {
+        if ($product->freezer->user_id !== $request->user()->id) {
+            abort(404);
+        }
+        $data = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'expiry_date' => 'nullable|date',
+            'quantity' => 'nullable|numeric|min:0',
+            'quantity_unit' => 'nullable|string|max:20',
+            'pieces' => 'nullable|integer|min:1',
+            'notes' => 'nullable|string|max:2000',
+            'tag_ids' => 'nullable|array',
+            'tag_ids.*' => 'exists:tags,id',
+        ]);
+        $tagIds = $data['tag_ids'] ?? null;
+        unset($data['tag_ids']);
+        if ($request->hasFile('image')) {
+            if ($product->image_path) Storage::disk('public')->delete($product->image_path);
+            $data['image_path'] = $request->file('image')->store('products', 'public');
+        }
+        $product->update($data);
+        if ($tagIds !== null) $product->tags()->sync(array_unique($tagIds));
+        return $product->fresh(['freezer', 'tags']);
+    });
+
+    // Update con FormData (multipart): POST perché PUT non popola $request->all() in PHP
+    Route::post('/products/{product}/update', function (Request $request, Product $product) {
+        if ($product->freezer->user_id !== $request->user()->id) abort(404);
+        $tagIdsRaw = $request->input('tag_ids');
+        $tagIds = is_string($tagIdsRaw) ? json_decode($tagIdsRaw, true) : $tagIdsRaw;
+        $oldQuantity = $product->quantity;
+        $oldPieces = $product->pieces;
+        $data = [
+            'name' => $request->input('name'),
+            'brand' => $request->input('brand') ?: null,
+            'expiry_date' => $request->input('expiry_date') ?: null,
+            'quantity' => $request->input('quantity') !== '' && $request->input('quantity') !== null ? (float) $request->input('quantity') : null,
+            'quantity_unit' => $request->input('quantity_unit') ?: null,
+            'pieces' => $request->input('pieces') !== '' && $request->input('pieces') !== null ? (int) $request->input('pieces') : null,
+            'notes' => $request->input('notes') ?: null,
+        ];
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'brand' => 'nullable|string|max:255',
+            'expiry_date' => 'nullable|date',
+            'quantity' => 'nullable|numeric|min:0',
+            'quantity_unit' => 'nullable|string|max:20',
+            'pieces' => 'nullable|integer|min:1',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+        if ($request->hasFile('image')) {
+            if ($product->image_path) Storage::disk('public')->delete($product->image_path);
+            $data['image_path'] = $request->file('image')->store('products', 'public');
+        }
+        $product->update($data);
+        if (is_array($tagIds)) $product->tags()->sync(array_unique($tagIds));
+
+        // Storico: registra modifica peso/quantità se sono cambiati
+        $quantityChanged = (string) ($oldQuantity ?? '') !== (string) ($data['quantity'] ?? '');
+        $piecesChanged = (int) ($oldPieces ?? 0) !== (int) ($data['pieces'] ?? 0);
+        if ($quantityChanged || $piecesChanged) {
+            $product->load('tags');
+            FreezerLog::create([
+                'user_id' => $request->user()->id,
+                'freezer_id' => $product->freezer_id,
+                'action' => 'quantity_updated',
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'brand' => $product->brand,
+                'product_image_path' => $product->image_path,
+                'expiry_date' => $product->expiry_date,
+                'quantity' => $product->quantity,
+                'quantity_unit' => $product->quantity_unit,
+                'pieces' => $product->pieces,
+                'notes' => $product->notes,
+                'tags_snapshot' => $product->tags->pluck('name')->values()->all(),
+            ]);
+        }
+
+        return $product->fresh(['freezer', 'tags']);
+    });
+
+    Route::delete('/products/{product}', function (Request $request, Product $product) {
+        if ($product->freezer->user_id !== $request->user()->id) {
+            abort(404);
+        }
+        $user = $request->user();
+        FreezerLog::create([
+            'user_id' => $user->id,
+            'freezer_id' => $product->freezer_id,
+            'action' => 'removed',
+            'product_id' => null,
+            'product_name' => $product->name,
+            'brand' => $product->brand,
+            'product_image_path' => $product->image_path,
+            'expiry_date' => $product->expiry_date,
+            'quantity' => $product->quantity,
+            'quantity_unit' => $product->quantity_unit,
+            'pieces' => $product->pieces,
+            'notes' => $product->notes,
+            'tags_snapshot' => $product->tags->pluck('name')->values()->all(),
+        ]);
+        if ($product->image_path) {
+            Storage::disk('public')->delete($product->image_path);
+        }
+        $product->delete();
+        return response()->json(null, 204);
+    });
+
+    // URL pubblico per immagine prodotto (path relativo da frontend)
+    Route::get('/products/{product}/image', function (Request $request, Product $product) {
+        if ($product->freezer->user_id !== $request->user()->id) {
+            abort(404);
+        }
+        if (!$product->image_path) {
+            abort(404);
+        }
+        return response()->file(Storage::disk('public')->path($product->image_path));
+    });
+
+    // ---------- Storico ----------
+    Route::get('/history', function (Request $request) {
+        return $request->user()->freezerLogs()->with('freezer:id,name')
+            ->orderByDesc('created_at')
+            ->limit(200)
+            ->get();
     });
 });

@@ -1,0 +1,59 @@
+<h1 class="h3 mb-4">Storico</h1>
+
+@if (loading()) {
+  <p class="text-muted">Caricamento...</p>
+} @else {
+  <div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Azione</th>
+          <th>Freezer</th>
+          <th>Prodotto</th>
+          <th>Marca</th>
+          <th>Tag</th>
+          <th>Scadenza</th>
+          <th>Peso/Quantità</th>
+          <th>Pezzi</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (log of logs(); track log.id) {
+          <tr>
+            <td>{{ log.created_at | date:'d/M/yyyy HH:mm' }}</td>
+            <td>
+              @if (log.action === 'added') {
+                <span class="badge bg-success">Aggiunto</span>
+              } @else if (log.action === 'removed') {
+                <span class="badge bg-danger">Rimosso</span>
+              } @else {
+                <span class="badge bg-primary">Modificato</span>
+              }
+            </td>
+            <td>{{ log.freezer?.name ?? '-' }}</td>
+            <td>{{ log.product_name }}</td>
+            <td>{{ log.brand ?? '-' }}</td>
+            <td>
+              @if (log.tags_snapshot?.length) {
+                @for (t of log.tags_snapshot; track t) {
+                  <span class="badge bg-secondary me-1">{{ t }}</span>
+                }
+              } @else {
+                -
+              }
+            </td>
+            <td>{{ log.expiry_date ? (log.expiry_date | date:'d/M/yyyy') : '-' }}</td>
+            <td>{{ log.quantity != null ? log.quantity + ' ' + (log.quantity_unit ?? '') : '-' }}</td>
+            <td>{{ log.pieces != null && log.pieces > 0 ? log.pieces : '-' }}</td>
+            <td><span [title]="log.notes ?? ''">{{ (log.notes ?? '-') | slice:0:30 }}{{ (log.notes?.length ?? 0) > 30 ? '…' : '' }}</span></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (logs().length === 0) {
+    <p class="text-muted">Nessuna operazione nello storico.</p>
+  }
+}

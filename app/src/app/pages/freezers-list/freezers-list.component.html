@@ -1,0 +1,101 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">I miei freezer</h1>
+  <a class="btn btn-primary" routerLink="/area-riservata/prodotto/nuovo">Aggiungi prodotto</a>
+</div>
+
+<div class="mb-4 w-100">
+  <div class="card shadow-sm mb-3 w-100">
+    <div class="card-body">
+      <h2 class="h6 text-muted mb-3">Aggiungi freezer</h2>
+      <div class="input-group" style="max-width: 400px;">
+        <input type="text" class="form-control" placeholder="Es. Cucina, Garage" [(ngModel)]="newName" (keyup.enter)="add()" />
+        <button type="button" class="btn btn-outline-primary" (click)="add()" [disabled]="adding() || !newName.trim()">{{ adding() ? '...' : 'Aggiungi' }}</button>
+      </div>
+    </div>
+  </div>
+  <div class="card shadow-sm w-100">
+    <div class="card-body">
+      <h2 class="h6 text-muted mb-3">Tag (carne, pesce, verdure...)</h2>
+      <div class="d-flex flex-wrap align-items-end gap-3 mb-3">
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label mb-0 small text-muted">Nome</label>
+          <input type="text" class="form-control" style="width: 140px;" placeholder="Nuovo tag" [(ngModel)]="newTagName" (keyup.enter)="addTag()" />
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label mb-0 small text-muted">Icona</label>
+          <select class="form-select form-select-sm" style="width: 160px;" [(ngModel)]="newTagIcon" title="Icona">
+            @for (opt of tagIconOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label mb-0 small text-muted">Colore</label>
+          <input type="color" class="form-control form-control-color border rounded" style="width: 3rem; height: 2.5rem; cursor: pointer; min-width: 3rem;" [(ngModel)]="newTagColor" title="Sfondo tag" />
+        </div>
+        <div class="d-flex flex-column gap-1">
+          <label class="form-label mb-0 small text-muted">&nbsp;</label>
+          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="addTag()" [disabled]="addingTag() || !newTagName.trim()">{{ addingTag() ? '...' : 'Aggiungi' }}</button>
+        </div>
+      </div>
+      @if (tags().length) {
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          @for (t of tags(); track t.id) {
+            @if (editingTagId() === t.id) {
+              <span class="badge d-inline-flex align-items-center gap-2 flex-nowrap p-2" [style.background-color]="editingTagColor || '#6c757d'" [style.color]="textColor(editingTagColor)" (click)="$event.stopPropagation()">
+                <input type="text" class="form-control form-control-sm" style="width: 90px;" [(ngModel)]="editingTagName" (keyup.enter)="saveEditTag($event)" />
+                <select class="form-select form-select-sm" style="width: 110px;" [(ngModel)]="editingTagIcon">
+                  @for (opt of tagIconOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+                <input type="color" class="form-control form-control-color border rounded" style="width: 2.25rem; height: 2rem; cursor: pointer; min-width: 2.25rem;" [(ngModel)]="editingTagColor" title="Sfondo" />
+                <button type="button" class="btn btn-link btn-sm p-0 text-dark" (click)="saveEditTag($event)" title="Salva" [disabled]="savingTag()">✓</button>
+                <button type="button" class="btn btn-link btn-sm p-0 text-dark" (click)="cancelEditTag($event)" title="Annulla">×</button>
+              </span>
+            } @else {
+              <span class="badge d-inline-flex align-items-center gap-1" [class.bg-secondary]="!t.color" [style.background-color]="t.color || null" [style.color]="t.color ? textColor(t.color) : '#fff'">
+                @if (t.icon) {
+                  <i class="ph ph-{{ t.icon }}" aria-hidden="true"></i>
+                }
+                {{ t.name }}
+                <button type="button" class="btn btn-link btn-sm p-0 opacity-75" [class.text-dark]="t.color" [class.text-white]="!t.color" (click)="startEditTag(t)" title="Modifica">✎</button>
+                <button type="button" class="btn btn-link btn-sm p-0 opacity-75" [class.text-dark]="t.color" [class.text-white]="!t.color" (click)="removeTag(t.id, $event)" aria-label="Elimina">×</button>
+              </span>
+            }
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+@if (loading()) {
+  <p class="text-muted">Caricamento...</p>
+} @else {
+  <div class="row g-3">
+    @for (f of freezers(); track f.id) {
+      <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start">
+              <h3 class="h5 card-title mb-0">
+                <a [routerLink]="['/area-riservata/freezers', f.id]" class="text-decoration-none text-dark">{{ f.name }}</a>
+              </h3>
+              <button type="button" class="btn btn-link btn-sm text-danger p-0" (click)="remove(f, $event)" title="Elimina freezer">Elimina</button>
+            </div>
+            <p class="card-text text-muted small mt-2 mb-auto">Clicca per vedere i prodotti</p>
+            <a [routerLink]="['/area-riservata/freezers', f.id]" class="btn btn-outline-primary btn-sm mt-2">Apri</a>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+  @if (freezers().length === 0) {
+    <p class="text-muted">Nessun freezer. Aggiungine uno sopra.</p>
+  }
+}
+
+<p class="mt-4">
+  <a routerLink="/area-riservata/tutti-i-prodotti" class="btn btn-outline-secondary">Vedi tutti i prodotti (tutti i freezer)</a>
+</p>

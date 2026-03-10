@@ -1,0 +1,97 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a routerLink="/area-riservata/freezers">Freezer</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ freezerName() }}</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">{{ freezerName() }}</h1>
+  <a [routerLink]="['/area-riservata/prodotto/nuovo']" [queryParams]="{ freezer_id: freezerId() }" class="btn btn-primary">Aggiungi prodotto</a>
+</div>
+
+@if (loading()) {
+  <p class="text-muted">Caricamento...</p>
+} @else {
+  <div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+      <div class="row g-2 align-items-end flex-wrap">
+        <div class="col-auto">
+          <label class="form-label mb-0 small text-muted">Nome</label>
+          <input type="text" class="form-control form-control-sm" placeholder="Cerca per nome..." [ngModel]="nameFilter()" (ngModelChange)="nameFilter.set($event)" style="min-width: 160px;" />
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-0 small text-muted">Tag</label>
+          <select class="form-select form-select-sm" [ngModel]="tagFilterId() ?? ''" (ngModelChange)="tagFilterId.set($event === '' ? null : +$event)" style="min-width: 140px;">
+            <option value="">Tutti i tag</option>
+            @for (t of tags(); track t.id) {
+              <option [value]="t.id">{{ t.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-auto">
+          <label class="form-label mb-0 small text-muted">Ordina per data</label>
+          <select class="form-select form-select-sm" [ngModel]="sortOrder()" (ngModelChange)="sortOrder.set($event)" style="min-width: 180px;">
+            <option value="newest">Più recenti prima</option>
+            <option value="oldest">Più vecchi prima</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="products-table-wrapper">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Nome</th>
+          <th>Tag</th>
+          <th>Data</th>
+          <th>Quantità</th>
+          <th class="d-none d-md-table-cell">Pezzi</th>
+          <th class="text-end products-table-actions">Azioni</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (p of filteredProducts(); track p.id) {
+          <tr>
+            <td><strong>{{ p.name }}</strong></td>
+            <td>
+              @if (p.tags?.length) {
+                @for (t of p.tags; track t.id) {
+                  <span class="badge me-1 d-inline-flex align-items-center gap-1" [class.bg-secondary]="!t.color" [style.background-color]="t.color || null" [style.color]="t.color ? tagTextColor(t.color) : '#fff'">
+                    @if (t.icon) {
+                      <i class="ph ph-{{ t.icon }}" aria-hidden="true"></i>
+                    }
+                    {{ t.name }}
+                  </span>
+                }
+              } @else {
+                <span class="text-muted">—</span>
+              }
+            </td>
+            <td>{{ p.created_at ? (p.created_at | date:'d/M/yyyy') : '—' }}</td>
+            <td>
+              {{ p.quantity != null ? p.quantity + ' ' + (p.quantity_unit ?? '') : '—' }}
+              <span class="d-block d-md-none small text-muted">Pezzi: {{ p.pieces != null && p.pieces > 0 ? p.pieces : '—' }}</span>
+            </td>
+            <td class="d-none d-md-table-cell">{{ p.pieces != null && p.pieces > 0 ? p.pieces : '—' }}</td>
+            <td class="text-end products-table-actions">
+              <a [routerLink]="['/area-riservata/prodotto', p.id, 'visualizza']" class="btn btn-outline-secondary btn-sm me-1" title="Visualizza"><i class="bi bi-eye"></i></a>
+              <a [routerLink]="['/area-riservata/prodotto', p.id]" class="btn btn-outline-primary btn-sm me-1" title="Modifica"><i class="bi bi-pencil"></i></a>
+              <button type="button" class="btn btn-outline-danger btn-sm" (click)="deleteProduct(p, $event)" title="Rimuovi"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (filteredProducts().length === 0) {
+    <p class="text-muted">
+      @if (products().length === 0) {
+        Nessun prodotto in questo freezer. <a [routerLink]="['/area-riservata/prodotto/nuovo']" [queryParams]="{ freezer_id: freezerId() }">Aggiungine uno</a>.
+      } @else {
+        Nessun prodotto corrisponde ai filtri.
+      }
+    </p>
+  }
+}

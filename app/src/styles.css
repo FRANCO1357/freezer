@@ -1,1 +1,35 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* Tabelle prodotti: su mobile niente scroll orizzontale, tabella si adatta */
+.products-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 767.98px) {
+  .products-table-wrapper {
+    overflow-x: visible;
+    width: 100%;
+  }
+  .products-table-wrapper .table {
+    min-width: 0;
+    table-layout: fixed;
+    width: 100%;
+  }
+  .products-table-wrapper .table th,
+  .products-table-wrapper .table td {
+    padding: 0.35rem 0.25rem;
+    font-size: 0.875rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  .products-table-wrapper .table td:first-child {
+    min-width: 0;
+  }
+  .products-table-actions {
+    white-space: nowrap;
+    width: 1%;
+  }
+  .products-table-actions .btn {
+    padding: 0.2rem 0.35rem;
+  }
+}

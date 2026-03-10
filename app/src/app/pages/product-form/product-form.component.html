@@ -1,0 +1,102 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a routerLink="/area-riservata/freezers">Freezer</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ isEdit() ? 'Modifica prodotto' : 'Nuovo prodotto' }}</li>
+  </ol>
+</nav>
+
+<h1 class="h3 mb-4">{{ isEdit() ? 'Modifica prodotto' : 'Nuovo prodotto' }}</h1>
+
+@if (loading()) {
+  <p class="text-muted">Caricamento...</p>
+} @else {
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="mb-3">
+      <label class="form-label">Freezer</label>
+      <select class="form-select" formControlName="freezer_id" [disabled]="isEdit()">
+        <option [ngValue]="null">Seleziona freezer</option>
+        @for (f of freezers(); track f.id) {
+          <option [ngValue]="f.id">{{ f.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Nome prodotto</label>
+      <input type="text" class="form-control" formControlName="name" placeholder="Es. Pollo, Salmone" />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Marca / Brand</label>
+      <input type="text" class="form-control" formControlName="brand" placeholder="Es. Findus, Coop" />
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Immagine</label>
+      <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event)" />
+      @if (imagePreview()) {
+        <div class="mt-2 position-relative d-inline-block">
+          <img [src]="imagePreview() | productImageUrl" alt="" style="max-height: 120px; border-radius: 8px;" />
+          <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" (click)="removeImage()">Rimuovi</button>
+        </div>
+      }
+    </div>
+
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Data di scadenza</label>
+        <input type="date" class="form-control" formControlName="expiry_date" />
+      </div>
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Quantità / Peso</label>
+        <input type="number" step="0.01" class="form-control" formControlName="quantity" placeholder="Es. 350" />
+      </div>
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Unità</label>
+        <input type="text" class="form-control" formControlName="quantity_unit" placeholder="g, kg, pz" />
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Numero di pezzi</label>
+      <div class="input-group" style="max-width: 140px;">
+        <button type="button" class="btn btn-outline-secondary" (click)="changePieces(-1)" [disabled]="(form.get('pieces')?.value ?? 0) <= 1">−</button>
+        <input type="number" class="form-control text-center" formControlName="pieces" min="1" placeholder="1" />
+        <button type="button" class="btn btn-outline-secondary" (click)="changePieces(1)">+</button>
+      </div>
+      <small class="text-muted">Es. 5 filetti, 3 confezioni</small>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Note</label>
+      <textarea class="form-control" formControlName="notes" rows="3" placeholder="Eventuali note sul prodotto..."></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Tag</label>
+      <div class="d-flex flex-wrap gap-2">
+        @for (t of tags(); track t.id) {
+          <label class="form-check-label border rounded px-2 py-1 d-inline-flex align-items-center gap-1 cursor-pointer" [class.bg-secondary]="!t.color" [style.background-color]="t.color || null" [style.color]="t.color ? tagTextColor(t.color) : '#fff'">
+            <input type="checkbox" [checked]="form.get('tag_ids')?.value?.includes(t.id)" (change)="toggleTag(t.id)" class="form-check-input me-1" />
+            @if (t.icon) {
+              <i class="ph ph-{{ t.icon }}" aria-hidden="true"></i>
+            }
+            {{ t.name }}
+          </label>
+        }
+      </div>
+      @if (tags().length === 0) {
+        <p class="small text-muted">Nessun tag. Aggiungine dalla pagina "I miei freezer".</p>
+      }
+    </div>
+
+    <div class="d-flex gap-2">
+      <button type="submit" class="btn btn-primary" [disabled]="saving()">{{ saving() ? 'Salvataggio...' : 'Salva' }}</button>
+      <a [routerLink]="['/area-riservata/freezers']" class="btn btn-outline-secondary">Annulla</a>
+    </div>
+  </form>
+}

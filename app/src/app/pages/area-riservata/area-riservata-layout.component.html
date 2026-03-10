@@ -1,0 +1,30 @@
+<div class="min-vh-100 bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" routerLink="/area-riservata">Freezer Organizer</a>
+      <button class="navbar-toggler" type="button" (click)="toggleMenu()" [attr.aria-expanded]="menuOpen()" aria-controls="nav" aria-label="Menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" [class.show]="menuOpen()" id="nav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/area-riservata/freezers" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu()">I miei freezer</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/area-riservata/tutti-i-prodotti" routerLinkActive="active" (click)="closeMenu()">Tutti i prodotti</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/area-riservata/storico" routerLinkActive="active" (click)="closeMenu()">Storico</a>
+          </li>
+        </ul>
+        <div class="d-flex align-items-center gap-2">
+          <span class="text-white text-opacity-75 small">Ciao, {{ user?.name ?? user?.email ?? 'Utente' }}</span>
+          <button type="button" class="btn btn-outline-light btn-sm" (click)="logout(); closeMenu()">Esci</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+  <main class="container py-4">
+    <router-outlet />
+  </main>
+</div>
