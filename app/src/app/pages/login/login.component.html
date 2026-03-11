@@ -1,6 +1,6 @@
 <div class="min-vh-100 d-flex align-items-center justify-content-center bg-light py-4">
   <div class="container" style="max-width: 400px;">
-    <div class="card shadow-sm">
+    <div class="card shadow-sm metallicss metallicss-app">
       <div class="card-body p-4">
         <h1 class="h4 fw-bold mb-1">Area riservata</h1>
         <p class="text-muted small mb-4">Accedi con le tue credenziali</p>
@@ -42,8 +42,8 @@
             }
           </div>
 
-          <button type="submit" class="btn btn-primary w-100" [disabled]="loading">
-            {{ loading ? 'Accesso in corso…' : 'Accedi' }}
+          <button type="submit" class="btn btn-primary btn-metallic metallicss metallicss-app w-100" [disabled]="loading">
+            <span>{{ loading ? 'Accesso in corso…' : 'Accedi' }}</span>
           </button>
         </form>
       </div>

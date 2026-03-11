@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { ProductService, Product } from '../../services/product.service';
 import { FreezerService, Freezer } from '../../services/freezer.service';
 import { PRODUCT_ICONS } from '../../constants/product-icons';
+import { FormatQuantityPipe } from '../../pipes/format-quantity.pipe';
 
 @Component({
   selector: 'app-all-products',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, FormatQuantityPipe],
   templateUrl: './all-products.component.html',
 })
 export class AllProductsComponent implements OnInit {

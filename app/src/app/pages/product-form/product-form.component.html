@@ -1,7 +1,9 @@
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a routerLink="/area-riservata/freezers">Freezer</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ isEdit() ? 'Modifica prodotto' : 'Nuovo prodotto' }}</li>
+    <li class="breadcrumb-item active" aria-current="page">
+      {{ isEdit() ? 'Modifica prodotto' : 'Nuovo prodotto' }}
+    </li>
   </ol>
 </nav>
 
@@ -16,8 +18,14 @@
 
   <form [formGroup]="form" (ngSubmit)="submit()">
     <div class="mb-3">
-      <label class="form-label">Freezer <span class="text-danger" aria-hidden="true">*</span></label>
-      <select class="form-select" formControlName="freezer_id" [class.is-invalid]="form.get('freezer_id')?.invalid && form.get('freezer_id')?.touched">
+      <label class="form-label"
+        >Freezer <span class="text-danger" aria-hidden="true">*</span></label
+      >
+      <select
+        class="form-select"
+        formControlName="freezer_id"
+        [class.is-invalid]="form.get('freezer_id')?.invalid && form.get('freezer_id')?.touched"
+      >
         <option [ngValue]="null">Seleziona freezer</option>
         @for (f of freezers(); track f.id) {
           <option [ngValue]="f.id">{{ f.name }}</option>
@@ -29,8 +37,16 @@
     </div>
 
     <div class="mb-3">
-      <label class="form-label">Nome prodotto <span class="text-danger" aria-hidden="true">*</span></label>
-      <input type="text" class="form-control" formControlName="name" placeholder="Es. Pollo, Salmone" [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched" />
+      <label class="form-label"
+        >Nome prodotto <span class="text-danger" aria-hidden="true">*</span></label
+      >
+      <input
+        type="text"
+        class="form-control"
+        formControlName="name"
+        placeholder="Es. Pollo, Salmone"
+        [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched"
+      />
       @if (form.get('name')?.invalid && form.get('name')?.touched) {
         <div class="invalid-feedback d-block">Inserisci il nome del prodotto.</div>
       }
@@ -38,7 +54,12 @@
 
     <div class="mb-3">
       <label class="form-label">Marca / Brand</label>
-      <input type="text" class="form-control" formControlName="brand" placeholder="Es. Findus, Coop" />
+      <input
+        type="text"
+        class="form-control"
+        formControlName="brand"
+        placeholder="Es. Findus, Coop"
+      />
     </div>
 
     <div class="mb-3">
@@ -46,8 +67,18 @@
       <input type="file" class="form-control" accept="image/*" (change)="onFileChange($event)" />
       @if (imagePreview()) {
         <div class="mt-2 position-relative d-inline-block">
-          <img [src]="imagePreview() | productImageUrl" alt="" style="max-height: 120px; border-radius: 8px;" />
-          <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" (click)="removeImage()">Rimuovi</button>
+          <img
+            [src]="imagePreview() | productImageUrl"
+            alt=""
+            style="max-height: 120px; border-radius: 8px"
+          />
+          <button
+            type="button"
+            class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+            (click)="removeImage()"
+          >
+            Rimuovi
+          </button>
         </div>
       }
     </div>
@@ -58,20 +89,44 @@
         <input type="date" class="form-control" formControlName="expiry_date" />
       </div>
       <div class="col-md-3 mb-3">
-        <label class="form-label">Quantità / Peso</label>
-        <input type="number" step="0.01" class="form-control" formControlName="quantity" placeholder="Es. 350" />
+        <label class="form-label">Peso</label>
+        <input
+          type="number"
+          step="0.01"
+          class="form-control"
+          formControlName="quantity"
+          placeholder="Es. 350"
+        />
       </div>
       <div class="col-md-3 mb-3">
         <label class="form-label">Unità</label>
-        <input type="text" class="form-control" formControlName="quantity_unit" placeholder="g, kg, pz" />
+        <input
+          type="text"
+          class="form-control"
+          formControlName="quantity_unit"
+          placeholder="g, kg, pz"
+        />
       </div>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Numero di pezzi</label>
-      <div class="input-group" style="max-width: 140px;">
-        <button type="button" class="btn btn-outline-secondary" (click)="changePieces(-1)" [disabled]="(form.get('pieces')?.value ?? 0) <= 1">−</button>
-        <input type="number" class="form-control text-center" formControlName="pieces" min="1" placeholder="1" />
+      <div class="input-group" style="max-width: 140px">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="changePieces(-1)"
+          [disabled]="(form.get('pieces')?.value ?? 0) <= 1"
+        >
+          −
+        </button>
+        <input
+          type="number"
+          class="form-control text-center"
+          formControlName="pieces"
+          min="1"
+          placeholder="1"
+        />
         <button type="button" class="btn btn-outline-secondary" (click)="changePieces(1)">+</button>
       </div>
       <small class="text-muted">Es. 5 filetti, 3 confezioni</small>
@@ -79,20 +134,41 @@
 
     <div class="mb-3">
       <label class="form-label">Note</label>
-      <textarea class="form-control" formControlName="notes" rows="3" placeholder="Eventuali note sul prodotto..."></textarea>
+      <textarea
+        class="form-control"
+        formControlName="notes"
+        rows="3"
+        placeholder="Eventuali note sul prodotto..."
+      ></textarea>
     </div>
 
     <div class="mb-3">
       <label class="form-label">Categoria / Icona</label>
       <div class="d-flex flex-wrap gap-3">
-        <label class="d-flex flex-column align-items-center gap-1 text-center cursor-pointer border rounded p-2 product-icon-option" [class.border-primary]="!form.get('icon')?.value" [class.bg-light]="!form.get('icon')?.value" style="min-width: 72px;">
+        <label
+          class="d-flex flex-column align-items-center gap-1 text-center cursor-pointer border rounded p-2 product-icon-option"
+          [class.border-primary]="!form.get('icon')?.value"
+          [class.bg-light]="!form.get('icon')?.value"
+          style="min-width: 72px"
+        >
           <input type="radio" value="" formControlName="icon" class="visually-hidden" />
           <span class="small text-muted">Nessuna</span>
         </label>
         @for (opt of productIcons; track opt.id) {
-          <label class="d-flex flex-column align-items-center gap-1 text-center cursor-pointer border rounded p-2 product-icon-option" [class.border-primary]="form.get('icon')?.value === opt.id" [class.bg-light]="form.get('icon')?.value === opt.id" style="min-width: 72px;">
+          <label
+            class="d-flex flex-column align-items-center gap-1 text-center cursor-pointer border rounded p-2 product-icon-option"
+            [class.border-primary]="form.get('icon')?.value === opt.id"
+            [class.bg-light]="form.get('icon')?.value === opt.id"
+            style="min-width: 72px"
+          >
             <input type="radio" [value]="opt.id" formControlName="icon" class="visually-hidden" />
-            <img [src]="iconUrl(opt.id)" [alt]="opt.label" width="40" height="40" style="object-fit: contain;" />
+            <img
+              [src]="iconUrl(opt.id)"
+              [alt]="opt.label"
+              width="40"
+              height="40"
+              style="object-fit: contain"
+            />
             <span class="small">{{ opt.label }}</span>
           </label>
         }
@@ -101,8 +177,18 @@
     </div>
 
     <div class="d-flex gap-2">
-      <button type="submit" class="btn btn-primary" [disabled]="saving()">{{ saving() ? 'Salvataggio...' : 'Salva' }}</button>
-      <a [routerLink]="['/area-riservata/freezers']" class="btn btn-outline-secondary">Annulla</a>
+      <button
+        type="submit"
+        class="btn btn-primary btn-metallic metallicss metallicss-app"
+        [disabled]="saving()"
+      >
+        <span>{{ saving() ? 'Salvataggio...' : 'Salva' }}</span>
+      </button>
+      <a
+        [routerLink]="['/area-riservata/freezers']"
+        class="btn btn-outline-secondary btn-metallic metallicss metallicss-app"
+        ><span>Annulla</span></a
+      >
     </div>
   </form>
 }

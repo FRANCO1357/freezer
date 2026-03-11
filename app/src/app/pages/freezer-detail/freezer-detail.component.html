@@ -7,13 +7,13 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="h3 mb-0">{{ freezerName() }}</h1>
-  <a [routerLink]="['/area-riservata/prodotto/nuovo']" [queryParams]="{ freezer_id: freezerId() }" class="btn btn-primary">Aggiungi prodotto</a>
+  <a [routerLink]="['/area-riservata/prodotto/nuovo']" [queryParams]="{ freezer_id: freezerId() }" class="btn btn-primary btn-metallic metallicss metallicss-app"><span>Aggiungi prodotto</span></a>
 </div>
 
 @if (loading()) {
   <p class="text-muted">Caricamento...</p>
 } @else {
-  <div class="card shadow-sm mb-3">
+  <div class="card shadow-sm mb-3 metallicss metallicss-app">
     <div class="card-body py-2">
       <div class="row g-2 align-items-end flex-wrap">
         <div class="col-auto">
@@ -39,12 +39,12 @@
       </div>
     </div>
   </div>
-  <div class="products-table-wrapper">
+  <div class="products-table-wrapper metallicss metallicss-app">
     <table class="table table-hover align-middle mb-0">
       <thead class="table-light">
         <tr>
           <th>Nome</th>
-          <th>Categoria</th>
+          <th><span class="d-md-none">Cat.</span><span class="d-none d-md-inline">Categoria</span></th>
           <th>Data</th>
           <th>Quantità</th>
           <th class="d-none d-md-table-cell">Pezzi</th>
@@ -62,16 +62,16 @@
                 <span class="text-muted">—</span>
               }
             </td>
-            <td>{{ p.created_at ? (p.created_at | date:'d/M/yyyy') : '—' }}</td>
+            <td><span class="d-none d-md-inline">{{ p.created_at ? (p.created_at | date:'d/M/yyyy') : '—' }}</span><span class="d-md-none">{{ p.created_at ? (p.created_at | date:'d/M/yy') : '—' }}</span></td>
             <td>
-              {{ p.quantity != null ? p.quantity + ' ' + (p.quantity_unit ?? '') : '—' }}
+              {{ p.quantity != null ? (p.quantity | formatQuantity) + (p.quantity_unit ? ' ' + p.quantity_unit : '') : '—' }}
               <span class="d-block d-md-none small text-muted">Pezzi: {{ p.pieces != null && p.pieces > 0 ? p.pieces : '—' }}</span>
             </td>
             <td class="d-none d-md-table-cell">{{ p.pieces != null && p.pieces > 0 ? p.pieces : '—' }}</td>
             <td class="text-end products-table-actions">
-              <a [routerLink]="['/area-riservata/prodotto', p.id, 'visualizza']" class="btn btn-outline-secondary btn-sm me-1" title="Visualizza"><i class="bi bi-eye"></i></a>
-              <a [routerLink]="['/area-riservata/prodotto', p.id]" class="btn btn-outline-primary btn-sm me-1" title="Modifica"><i class="bi bi-pencil"></i></a>
-              <button type="button" class="btn btn-outline-danger btn-sm" (click)="deleteProduct(p, $event)" title="Rimuovi"><i class="bi bi-trash"></i></button>
+              <a [routerLink]="['/area-riservata/prodotto', p.id, 'visualizza']" class="btn btn-outline-secondary btn-sm btn-metallic metallicss metallicss-app me-1" title="Visualizza"><span><i class="bi bi-eye"></i></span></a>
+              <a [routerLink]="['/area-riservata/prodotto', p.id]" class="btn btn-outline-primary btn-sm btn-metallic metallicss metallicss-app me-1" title="Modifica"><span><i class="bi bi-pencil"></i></span></a>
+              <button type="button" class="btn btn-outline-danger btn-sm btn-metallic metallicss metallicss-app" (click)="deleteProduct(p, $event)" title="Rimuovi"><span><i class="bi bi-trash"></i></span></button>
             </td>
           </tr>
         }

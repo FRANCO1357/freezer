@@ -3,18 +3,19 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HistoryService, FreezerLog } from '../../services/history.service';
 import { PRODUCT_ICONS } from '../../constants/product-icons';
+import { FormatQuantityPipe } from '../../pipes/format-quantity.pipe';
 
 const MODIFIED_FIELD_LABELS: Record<string, string> = {
   name: 'nome',
   freezer: 'freezer',
-  quantity: 'peso/quantità',
+  quantity: 'peso',
   pieces: 'pezzi',
 };
 
 @Component({
   selector: 'app-history',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, FormatQuantityPipe],
   templateUrl: './history.component.html',
 })
 export class HistoryComponent implements OnInit {

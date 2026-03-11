@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { FreezerService } from '../../services/freezer.service';
 import { ProductService, Product } from '../../services/product.service';
 import { PRODUCT_ICONS } from '../../constants/product-icons';
+import { FormatQuantityPipe } from '../../pipes/format-quantity.pipe';
 
 @Component({
   selector: 'app-freezer-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, FormatQuantityPipe],
   templateUrl: './freezer-detail.component.html',
 })
 export class FreezerDetailComponent implements OnInit {

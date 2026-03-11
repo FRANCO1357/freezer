@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductService, Product } from '../../services/product.service';
 import { ProductImageUrlPipe } from '../../pipes/product-image-url.pipe';
+import { FormatQuantityPipe } from '../../pipes/format-quantity.pipe';
 import { PRODUCT_ICONS } from '../../constants/product-icons';
 
 @Component({
   selector: 'app-product-view',
   standalone: true,
-  imports: [CommonModule, RouterLink, ProductImageUrlPipe],
+  imports: [CommonModule, RouterLink, ProductImageUrlPipe, FormatQuantityPipe],
   templateUrl: './product-view.component.html',
 })
 export class ProductViewComponent implements OnInit {

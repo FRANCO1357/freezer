@@ -13,6 +13,90 @@ body {
   min-height: 100vh;
 }
 
+/* MetalliCSS: effetto metallico per card e tabelle */
+.metallicss-app {
+  --convexity: 2;
+  --metal: neutral;
+}
+/* Canvas sopra lo sfondo della card così l’effetto è visibile */
+.card.metallicss-app {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--bs-border-radius, 0.375rem);
+}
+.card.metallicss-app .metal {
+  z-index: 0 !important;
+  border-radius: var(--bs-border-radius, 0.375rem);
+}
+.card.metallicss-app .card-body {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+.products-table-wrapper.metallicss-app,
+.table-responsive.metallicss-app {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.5rem;
+}
+.products-table-wrapper.metallicss-app .metal,
+.table-responsive.metallicss-app .metal {
+  z-index: 0 !important;
+  border-radius: 12px;
+}
+.products-table-wrapper.metallicss-app .table,
+.table-responsive.metallicss-app .table {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+/* Niente sfondo Bootstrap sulle celle così si vede l’effetto metallico */
+.products-table-wrapper.metallicss-app .table > :not(caption) > * > *,
+.table-responsive.metallicss-app .table > :not(caption) > * > * {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Pulsanti metallici (MetalliCSS) */
+.btn-metallic {
+  --convexity: 3;
+  --metal: neutral;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  outline: none;
+  background: #fff;
+  box-shadow: rgba(255, 255, 255, 0.5) 1px 1px 0, rgba(0, 0, 0, 0.15) -1px -1px 0;
+}
+.btn-metallic .metal {
+  z-index: 0 !important;
+  border-radius: 0.5rem;
+}
+.btn-metallic > *:not(.metal) {
+  position: relative;
+  z-index: 1;
+  color: #000;
+}
+.btn-metallic,
+.btn-metallic:hover,
+.btn-metallic:focus,
+.btn-metallic:active {
+  color: #000;
+}
+.btn-metallic .bi {
+  color: inherit;
+}
+.btn-metallic:focus > .metal {
+  opacity: 0.75;
+}
+.btn-metallic:focus {
+  outline: none;
+}
+
 /* Tabelle prodotti: su mobile niente scroll orizzontale, tabella si adatta */
 .products-table-wrapper {
   overflow-x: auto;
@@ -20,13 +104,14 @@ body {
 }
 @media (max-width: 767.98px) {
   .products-table-wrapper {
-    overflow-x: visible;
+    overflow-x: auto;
     width: 100%;
   }
   .products-table-wrapper .table {
     min-width: 0;
-    table-layout: fixed;
-    width: 100%;
+    table-layout: auto;
+    width: auto;
+    max-width: 100%;
   }
   .products-table-wrapper .table th,
   .products-table-wrapper .table td {
@@ -34,9 +119,15 @@ body {
     font-size: 0.875rem;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    white-space: normal;
   }
   .products-table-wrapper .table td:first-child {
     min-width: 0;
+  }
+  .table-responsive .table {
+    table-layout: auto;
+    width: auto;
+    max-width: 100%;
   }
   .products-table-actions {
     white-space: nowrap;
@@ -44,6 +135,9 @@ body {
   }
   .products-table-actions .btn {
     padding: 0.2rem 0.35rem;
+  }
+  .products-table-actions .me-1 {
+    margin-right: 0 !important;
   }
 }
 

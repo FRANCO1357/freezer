@@ -3,64 +3,143 @@
 @if (loading()) {
   <p class="text-muted">Caricamento...</p>
 } @else {
-  <div class="card shadow-sm mb-3">
+  <div class="card shadow-sm mb-3 metallicss metallicss-app">
     <div class="card-body py-2">
       <div class="row g-2 align-items-end">
         <div class="col-auto">
           <label class="form-label mb-0 small text-muted">Filtra per data</label>
-          <input type="date" class="form-control form-control-sm" [ngModel]="dateFilter()" (ngModelChange)="dateFilter.set($event)" style="min-width: 160px;" />
+          <input
+            type="date"
+            class="form-control form-control-sm"
+            [ngModel]="dateFilter()"
+            (ngModelChange)="dateFilter.set($event)"
+            style="min-width: 160px"
+          />
         </div>
         <div class="col-auto">
-          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="dateFilter.set('')">Tutti i giorni</button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary btn-sm btn-metallic metallicss metallicss-app"
+            (click)="dateFilter.set('')"
+          >
+            <span>Tutti i giorni</span>
+          </button>
         </div>
       </div>
     </div>
   </div>
-  <div class="table-responsive">
+  <div class="table-responsive metallicss metallicss-app">
     <table class="table table-hover">
       <thead>
         <tr>
-          <th>Data</th>
+          <th class="d-none d-md-table-cell">Data</th>
           <th>Azione</th>
           <th>Freezer</th>
           <th>Prodotto</th>
-          <th>Marca</th>
-          <th>Categoria</th>
-          <th>Peso/Quantità</th>
-          <th>Pezzi</th>
+          <th class="d-none d-md-table-cell">Marca</th>
+          <th class="d-none d-md-table-cell">
+            <span class="d-md-none">Cat.</span><span class="d-none d-md-inline">Categoria</span>
+          </th>
+          <th>Peso</th>
+          <th class="d-none d-md-table-cell">Pezzi</th>
         </tr>
       </thead>
       <tbody>
         @for (log of filteredLogs(); track log.id) {
           <tr>
-            <td>{{ log.created_at | date:'d/M/yyyy HH:mm' }}</td>
-            <td>
-              @if (log.action === 'added') {
-                <span class="badge bg-success">Aggiunto</span>
-              } @else if (log.action === 'removed') {
-                <span class="badge bg-danger">Rimosso</span>
-              } @else {
-                <span class="badge bg-primary">Modificato</span>
-                @if (getModificationLabel(log)) {
-                  <span class="small text-muted ms-1">({{ getModificationLabel(log) }})</span>
-                }
-              }
+            <td class="d-none d-md-table-cell">
+              <span class="d-none d-md-inline">{{ log.created_at | date: 'd/M/yyyy HH:mm' }}</span
+              ><span class="d-md-none">{{ log.created_at | date: 'd/M/yy HH:mm' }}</span>
             </td>
-            <td [class.history-modified-cell]="log.modified_fields?.includes('freezer')">{{ log.freezer?.name ?? '-' }}</td>
-            <td [class.history-modified-cell]="log.modified_fields?.includes('name')">{{ log.product_name }}</td>
-            <td>{{ log.brand ?? '-' }}</td>
             <td>
+              <span class="d-none d-md-inline">
+                @if (log.action === 'added') {
+                  <span class="badge bg-success">Aggiunto</span>
+                } @else if (log.action === 'removed') {
+                  <span class="badge bg-danger">Rimosso</span>
+                } @else {
+                  <div class="d-flex flex-column align-items-start">
+                    <span class="badge bg-primary">Modificato</span>
+                    @if (getModificationLabel(log)) {
+                      <span class="small text-muted mt-1">({{ getModificationLabel(log) }})</span>
+                    }
+                  </div>
+                }
+              </span>
+              <div class="d-flex flex-column d-md-none">
+                @if (log.action === 'added') {
+                  <span class="badge bg-success" title="Aggiunto">Agg.</span>
+                } @else if (log.action === 'removed') {
+                  <span class="badge bg-danger" title="Rimosso">Rim.</span>
+                } @else {
+                  <div class="d-flex flex-column align-items-start">
+                    <span class="badge bg-primary" title="Modificato">Mod.</span>
+                    @if (getModificationLabel(log)) {
+                      <span class="small text-muted mt-1">({{ getModificationLabel(log) }})</span>
+                    }
+                  </div>
+                }
+                <span class="small text-muted mt-1">{{
+                  log.created_at | date: 'd/M/yy HH:mm'
+                }}</span>
+              </div>
+            </td>
+            <td [class.history-modified-cell]="log.modified_fields?.includes('freezer')">
+              {{ log.freezer?.name ?? '-' }}
+            </td>
+            <td [class.history-modified-cell]="log.modified_fields?.includes('name')">
+              <span class="d-none d-md-inline">{{ log.product_name }}</span>
+              <div class="d-flex flex-column d-md-none">
+                <span>{{ log.product_name }}</span>
+                <span class="small text-muted">
+                  @if (log.icon) {
+                    {{ iconLabel(log.icon) }}
+                  } @else {
+                    —
+                  }
+                </span>
+              </div>
+            </td>
+            <td class="d-none d-md-table-cell">{{ log.brand ?? '-' }}</td>
+            <td class="d-none d-md-table-cell">
               @if (log.icon) {
                 <div class="d-flex flex-column align-items-center gap-1">
-                  <img [src]="'/icons/' + log.icon + '.png'" [alt]="iconLabel(log.icon)" width="28" height="28" style="object-fit: contain;" />
+                  <img
+                    [src]="'/icons/' + log.icon + '.png'"
+                    [alt]="iconLabel(log.icon)"
+                    width="28"
+                    height="28"
+                    style="object-fit: contain"
+                  />
                   <span class="small text-muted">{{ iconLabel(log.icon) }}</span>
                 </div>
               } @else {
                 <span class="text-muted">—</span>
               }
             </td>
-            <td [class.history-modified-cell]="log.modified_fields?.includes('quantity')">{{ log.quantity != null ? log.quantity + ' ' + (log.quantity_unit ?? '') : '-' }}</td>
-            <td [class.history-modified-cell]="log.modified_fields?.includes('pieces')">{{ log.pieces != null && log.pieces > 0 ? log.pieces : '-' }}</td>
+            <td [class.history-modified-cell]="log.modified_fields?.includes('quantity')">
+              <span class="d-none d-md-inline">{{
+                log.quantity != null
+                  ? (log.quantity | formatQuantity) + (log.quantity_unit ? ' ' + log.quantity_unit : '')
+                  : '-'
+              }}</span>
+              <div class="d-flex flex-column d-md-none">
+                <span>{{
+                  log.quantity != null
+                    ? (log.quantity | formatQuantity) + (log.quantity_unit ? ' ' + log.quantity_unit : '')
+                    : '-'
+                }}</span>
+                <span class="small text-muted"
+                  >Pezzi: {{ log.pieces != null && log.pieces > 0 ? log.pieces : '—' }}</span
+                >
+              </div>
+            </td>
+            <td
+              class="d-none d-md-table-cell"
+              [class.history-modified-cell]="log.modified_fields?.includes('pieces')"
+            >
+              {{ log.pieces != null && log.pieces > 0 ? log.pieces : '-' }}
+            </td>
           </tr>
         }
       </tbody>

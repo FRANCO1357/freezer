@@ -14,13 +14,23 @@
   @let p = product()!;
   <div class="d-flex justify-content-between align-items-start mb-4">
     <h1 class="h3 mb-0">{{ p.name }}</h1>
-    <a [routerLink]="['/area-riservata/prodotto', p.id]" [queryParams]="returnTo" class="btn btn-primary">Modifica</a>
+    <a
+      [routerLink]="['/area-riservata/prodotto', p.id]"
+      [queryParams]="returnTo"
+      class="btn btn-primary btn-metallic metallicss metallicss-app"
+      ><span>Modifica</span></a
+    >
   </div>
 
   <div class="row">
     @if (p.image_url) {
       <div class="col-md-4 col-lg-3 mb-4">
-        <img [src]="p.image_url | productImageUrl" alt="" class="img-fluid rounded shadow-sm" style="max-height: 240px; object-fit: cover;" />
+        <img
+          [src]="p.image_url | productImageUrl"
+          alt=""
+          class="img-fluid rounded shadow-sm"
+          style="max-height: 240px; object-fit: cover"
+        />
       </div>
     }
     <div class="col">
@@ -34,16 +44,24 @@
         }
 
         <dt class="col-sm-3 text-muted">Data di aggiunta</dt>
-        <dd class="col-sm-9">{{ p.created_at ? (p.created_at | date:'d/M/yyyy') : '—' }}</dd>
+        <dd class="col-sm-9">
+          <span class="d-none d-md-inline">{{
+            p.created_at ? (p.created_at | date: 'd/M/yyyy') : '—'
+          }}</span
+          ><span class="d-md-none">{{ p.created_at ? (p.created_at | date: 'd/M/yy') : '—' }}</span>
+        </dd>
 
         @if (p.expiry_date) {
           <dt class="col-sm-3 text-muted">Scadenza</dt>
-          <dd class="col-sm-9">{{ p.expiry_date | date:'d/M/yyyy' }}</dd>
+          <dd class="col-sm-9">
+            <span class="d-none d-md-inline">{{ p.expiry_date | date: 'd/M/yyyy' }}</span
+            ><span class="d-md-none">{{ p.expiry_date | date: 'd/M/yy' }}</span>
+          </dd>
         }
 
         @if (p.quantity != null) {
-          <dt class="col-sm-3 text-muted">Quantità / Peso</dt>
-          <dd class="col-sm-9">{{ p.quantity }} {{ p.quantity_unit ?? '' }}</dd>
+          <dt class="col-sm-3 text-muted">Peso</dt>
+          <dd class="col-sm-9">{{ p.quantity | formatQuantity }}{{ p.quantity_unit ? ' ' + p.quantity_unit : '' }}</dd>
         }
 
         @if (p.pieces != null && p.pieces > 0) {
@@ -54,7 +72,13 @@
         @if (p.icon) {
           <dt class="col-sm-3 text-muted">Categoria</dt>
           <dd class="col-sm-9 d-flex align-items-center gap-2">
-            <img [src]="'/icons/' + p.icon + '.png'" [alt]="iconLabel(p.icon)" width="32" height="32" style="object-fit: contain;" />
+            <img
+              [src]="'/icons/' + p.icon + '.png'"
+              [alt]="iconLabel(p.icon)"
+              width="32"
+              height="32"
+              style="object-fit: contain"
+            />
             <span>{{ iconLabel(p.icon) }}</span>
           </dd>
         }
