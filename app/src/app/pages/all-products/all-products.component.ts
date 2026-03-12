@@ -6,11 +6,12 @@ import { ProductService, Product } from '../../services/product.service';
 import { FreezerService, Freezer } from '../../services/freezer.service';
 import { PRODUCT_ICONS } from '../../constants/product-icons';
 import { FormatQuantityPipe } from '../../pipes/format-quantity.pipe';
+import { TruncatePipe } from '../../pipes/truncate.pipe';
 
 @Component({
   selector: 'app-all-products',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, FormatQuantityPipe],
+  imports: [CommonModule, RouterLink, FormsModule, FormatQuantityPipe, TruncatePipe],
   templateUrl: './all-products.component.html',
 })
 export class AllProductsComponent implements OnInit {
@@ -18,6 +19,11 @@ export class AllProductsComponent implements OnInit {
   private freezerService = inject(FreezerService);
 
   protected readonly productIcons = PRODUCT_ICONS;
+
+  /** Balloon mobile: testo e posizione per nome prodotto completo */
+  balloonVisible = signal(false);
+  balloonText = signal('');
+  balloonStyle = signal<{ top: number; left: number }>({ top: 0, left: 0 });
 
   products = signal<Product[]>([]);
   freezers = signal<Freezer[]>([]);
@@ -68,5 +74,24 @@ export class AllProductsComponent implements OnInit {
         this.products.update((list) => list.filter((x) => x.id !== p.id));
       },
     });
+  }
+
+  showNameBalloon(event: Event, fullName: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.balloonText.set(fullName);
+    this.balloonStyle.set({
+      top: rect.top - 8,
+      left: rect.left,
+    });
+    this.balloonVisible.set(true);
+    setTimeout(() => {
+      const close = () => {
+        this.balloonVisible.set(false);
+        document.removeEventListener('click', close);
+      };
+      document.addEventListener('click', close);
+    }, 0);
   }
 }

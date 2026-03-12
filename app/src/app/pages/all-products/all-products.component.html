@@ -1,10 +1,10 @@
-<h1 class="h3 mb-4">Tutti i prodotti</h1>
 
 @if (loading()) {
   <p class="text-muted">Caricamento...</p>
 } @else {
-  <div class="card shadow-sm mb-3 metallicss metallicss-app">
-    <div class="card-body py-2">
+  <div class="table-panel">
+    <h2 class="table-panel-title">Tutti i prodotti</h2>
+    <div class="table-panel-filters">
       <div class="row g-2 align-items-end flex-wrap">
         <div class="col-auto">
           <label class="form-label mb-0 small text-muted">Nome</label>
@@ -37,8 +37,7 @@
         </div>
       </div>
     </div>
-  </div>
-  <div class="products-table-wrapper metallicss metallicss-app">
+    <div class="products-table-wrapper">
     <table class="table table-hover align-middle mb-0">
       <thead class="table-light">
         <tr>
@@ -55,7 +54,15 @@
         @for (p of filteredProducts(); track p.id) {
           <tr>
             <td>
-              <strong>{{ p.name }}</strong>
+              <strong class="d-none d-md-inline">{{ p.name }}</strong>
+              <strong
+                class="product-name-mobile d-md-none"
+                (click)="showNameBalloon($event, p.name)"
+                role="button"
+                tabindex="0"
+                (keydown.enter)="showNameBalloon($event, p.name)"
+                >{{ p.name | truncate: 8 }}</strong
+              >
               <span class="d-block d-md-none small text-muted">{{ p.freezer?.name ?? '—' }}</span>
             </td>
             <td class="d-none d-md-table-cell">{{ p.freezer?.name ?? '—' }}</td>
@@ -73,15 +80,23 @@
             </td>
             <td class="d-none d-md-table-cell">{{ p.pieces != null && p.pieces > 0 ? p.pieces : '—' }}</td>
             <td class="text-end products-table-actions">
-              <a [routerLink]="['/area-riservata/prodotto', p.id, 'visualizza']" [queryParams]="{ returnTo: 'tutti-i-prodotti' }" class="btn btn-outline-secondary btn-sm btn-metallic metallicss metallicss-app me-1" title="Visualizza"><span><i class="bi bi-eye"></i></span></a>
-              <a [routerLink]="['/area-riservata/prodotto', p.id]" [queryParams]="{ returnTo: 'tutti-i-prodotti' }" class="btn btn-outline-primary btn-sm btn-metallic metallicss metallicss-app me-1" title="Modifica"><span><i class="bi bi-pencil"></i></span></a>
-              <button type="button" class="btn btn-outline-danger btn-sm btn-metallic metallicss metallicss-app" (click)="deleteProduct(p, $event)" title="Rimuovi"><span><i class="bi bi-trash"></i></span></button>
+              <a [routerLink]="['/area-riservata/prodotto', p.id, 'visualizza']" [queryParams]="{ returnTo: 'tutti-i-prodotti' }" class="btn btn-secondary btn-sm" title="Visualizza"><i class="bi bi-eye"></i></a>
+              <a [routerLink]="['/area-riservata/prodotto', p.id]" [queryParams]="{ returnTo: 'tutti-i-prodotti' }" class="btn btn-primary btn-sm" title="Modifica"><i class="bi bi-pencil"></i></a>
+              <button type="button" class="btn btn-danger btn-sm" (click)="deleteProduct(p, $event)" title="Rimuovi"><i class="bi bi-trash"></i></button>
             </td>
           </tr>
         }
       </tbody>
     </table>
+    </div>
   </div>
+  @if (balloonVisible()) {
+    <div
+      class="product-name-balloon"
+      [style.top.px]="balloonStyle().top"
+      [style.left.px]="balloonStyle().left"
+      >{{ balloonText() }}</div>
+  }
   @if (filteredProducts().length === 0) {
     <p class="text-muted">
       @if (products().length === 0) {

@@ -108,11 +108,11 @@ Salva questi valori in **`credentials.local`** → sezione `[database_hostinger]
 
 ### 4.2 Laravel in locale (generale)
 
-```bash
-cd backend
-cp .env.example .env
-php artisan key:generate
-composer install
+   ```bash
+   cd backend
+   cp .env.example .env
+   php artisan key:generate
+   composer install
 php artisan storage:link   # necessario per vedere le immagini prodotti (link public/storage → storage/app/public)
 ```
 

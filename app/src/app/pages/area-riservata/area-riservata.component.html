@@ -4,12 +4,12 @@
       <span class="navbar-brand mb-0">Area riservata</span>
       <div class="d-flex align-items-center gap-2">
         <span class="text-white text-opacity-75 small">Ciao, {{ user?.name ?? user?.email ?? 'Utente' }}</span>
-        <button type="button" class="btn btn-outline-light btn-sm" (click)="logout()">Esci</button>
+        <button type="button" class="btn btn-light btn-sm" (click)="logout()">Esci</button>
       </div>
     </div>
   </nav>
   <main class="container py-4">
-    <div class="card shadow-sm metallicss metallicss-app">
+    <div class="card shadow-sm">
       <div class="card-body">
         <h2 class="h5 card-title mb-3">Benvenuto</h2>
         <p class="card-text text-muted mb-0">

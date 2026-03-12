@@ -1,15 +1,15 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h1 class="h3 mb-0">I miei freezer</h1>
-  <a class="btn btn-primary btn-metallic metallicss metallicss-app" routerLink="/area-riservata/prodotto/nuovo"><span>Aggiungi prodotto</span></a>
+  <a class="btn btn-primary" routerLink="/area-riservata/prodotto/nuovo">Aggiungi prodotto</a>
 </div>
 
 <div class="mb-4 w-100">
-  <div class="card shadow-sm w-100 metallicss metallicss-app">
+  <div class="card shadow-sm w-100">
     <div class="card-body">
       <h2 class="h6 text-muted mb-3">Aggiungi freezer</h2>
       <div class="input-group" style="max-width: 400px;">
         <input type="text" class="form-control" placeholder="Es. Cucina, Garage" [(ngModel)]="newName" (keyup.enter)="add()" />
-        <button type="button" class="btn btn-outline-primary btn-metallic metallicss metallicss-app" (click)="add()" [disabled]="adding() || !newName.trim()"><span>{{ adding() ? '...' : 'Aggiungi' }}</span></button>
+        <button type="button" class="btn btn-primary" (click)="add()" [disabled]="adding() || !newName.trim()">{{ adding() ? '...' : 'Aggiungi' }}</button>
       </div>
     </div>
   </div>
@@ -21,7 +21,7 @@
   <div class="row g-3">
     @for (f of freezers(); track f.id) {
       <div class="col-md-6 col-lg-4">
-        <div class="card h-100 shadow-sm metallicss metallicss-app">
+        <div class="card h-100 shadow-sm">
           <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between align-items-start">
               <h3 class="h5 card-title mb-0">
@@ -30,7 +30,7 @@
               <button type="button" class="btn btn-link btn-sm text-dark p-0" (click)="remove(f, $event)" title="Elimina freezer">Elimina</button>
             </div>
             <p class="card-text text-muted small mt-2 mb-auto">Clicca per vedere i prodotti</p>
-            <a [routerLink]="['/area-riservata/freezers', f.id]" class="btn btn-outline-primary btn-sm btn-metallic metallicss metallicss-app mt-2"><span>Apri</span></a>
+            <a [routerLink]="['/area-riservata/freezers', f.id]" class="btn btn-primary btn-sm mt-2">Apri</a>
           </div>
         </div>
       </div>
@@ -42,5 +42,5 @@
 }
 
 <p class="mt-4">
-  <a routerLink="/area-riservata/tutti-i-prodotti" class="btn btn-outline-secondary btn-metallic metallicss metallicss-app"><span>Vedi tutti i prodotti (tutti i freezer)</span></a>
+  <a routerLink="/area-riservata/tutti-i-prodotti" class="btn btn-primary">Vedi tutti i prodotti (tutti i freezer)</a>
 </p>
