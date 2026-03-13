@@ -24,9 +24,15 @@ Route::middleware('throttle:5,1')->group(function () {
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['Credenziali non valide.'],
+            ]);
+        }
+
+        if (! $user->email_verified_at) {
+            throw ValidationException::withMessages([
+                'email' => ['Account non verificato. Controlla la tua email e clicca sul link di conferma.'],
             ]);
         }
 
@@ -96,9 +102,9 @@ Route::get('/verify-email/{id}/{hash}', function (Request $request, int $id, str
         $user->save();
     }
 
-    return response()->json([
-        'message' => 'Email verificata correttamente. Ora puoi tornare all’app e accedere.',
-    ]);
+    $frontendLogin = env('FRONTEND_LOGIN_URL', 'http://localhost:4200/login');
+
+    return redirect()->away($frontendLogin . '?verified=1');
 })->name('verification.verify');
 
 Route::middleware('auth:sanctum')->group(function () {

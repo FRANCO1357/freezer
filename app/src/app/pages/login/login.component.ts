@@ -21,9 +21,11 @@ export class LoginComponent {
   loading = false;
 
   constructor() {
-    const registered = this.route.snapshot.queryParamMap.get('registered');
-    if (registered === '1') {
+    const qp = this.route.snapshot.queryParamMap;
+    if (qp.get('registered') === '1') {
       this.infoMessage = "Registrazione completata. Controlla l'email per confermare l'account.";
+    } else if (qp.get('verified') === '1') {
+      this.infoMessage = 'Email verificata correttamente. Ora puoi accedere con le tue credenziali.';
     }
   }
 
