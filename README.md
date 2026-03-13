@@ -236,7 +236,18 @@ Se sul server il comando `mysql` non è disponibile, usa solo l’export e impor
   - Dopo la registrazione viene mostrato un messaggio tipo _“Controlla l’email per confermare l’account”_.
 - **Utente esistente:** l’utente admin già presente nel database **non viene toccato**; la registrazione aggiunge solo nuovi record nella tabella `users`.
 
-### 5.2 Configurazione mailer (locale e produzione)
+### 5.3 Invitare un altro utente (stesso account / stessi permessi)
+
+Un utente loggato può **invitare un’altra persona** a usare il suo stesso “account” (stessi freezer e prodotti, stesso permesso di lettura/scrittura):
+
+- **Backend:** tabella `freezer_user` (condivisione freezer) e `invitations` (inviti in sospeso). Endpoint:
+  - `POST /api/invitations` (auth) → invia email con link per accettare l’invito.
+  - `GET /api/invitations/accept?token=...` (pubblico) → restituisce nome inviter e email invitato se il token è valido.
+  - `POST /api/invitations/accept` (pubblico) → body: `token`, `name`, `password`, `password_confirmation`; crea (o riusa) l’utente e lo collega a tutti i freezer dell’inviter; invito consumato.
+- **Frontend:** in area riservata, voce di menu **“Invita utente”** (`/area-riservata/invita`): form con email che chiama `POST /api/invitations`. L’invitato riceve una mail con link a `/invite/accept?token=...`; da lì imposta nome e password, poi viene reindirizzato al login.
+- **Migrazioni:** alla prima installazione o dopo il deploy eseguire `php artisan migrate` per creare le tabelle `freezer_user` e `invitations` (vedi § 4.5 per produzione).
+
+### 5.4 Configurazione mailer (locale e produzione)
 
 Laravel usa le variabili in `backend/.env`:
 
@@ -250,7 +261,7 @@ MAIL_FROM_ADDRESS="hello@example.com"
 MAIL_FROM_NAME="${APP_NAME}"
 ```
 
-#### 5.2.1 Comportamento di default in locale
+#### 5.4.1 Comportamento di default in locale
 
 - Con `MAIL_MAILER=log` **non viene inviata nessuna email reale**.
 - Il contenuto delle email (incluso il link di verifica account) viene scritto nel **log di Laravel**:
@@ -261,7 +272,7 @@ MAIL_FROM_NAME="${APP_NAME}"
   2. Aprire `backend/storage/logs/laravel.log` e cercare l’URL di verifica (`/api/verify-email/...`).
   3. Copiare l’URL nel browser → l’email viene segnata come verificata.
 
-#### 5.2.2 Mailer in locale (es. Mailtrap)
+#### 5.4.2 Mailer in locale (es. Mailtrap)
 
 Se vuoi vedere davvero le email in una inbox di test, puoi usare un servizio tipo **Mailtrap**:
 
@@ -284,7 +295,7 @@ Se vuoi vedere davvero le email in una inbox di test, puoi usare un servizio tip
 
 Da questo momento, le mail inviate da `/api/register` arriveranno nella inbox di Mailtrap (non nella posta reale).
 
-#### 5.2.3 Mailer in produzione (Hostinger)
+#### 5.4.3 Mailer in produzione (Hostinger)
 
 In produzione, usa l’SMTP di Hostinger (o di un provider esterno) e **non** committare mai le credenziali:
 

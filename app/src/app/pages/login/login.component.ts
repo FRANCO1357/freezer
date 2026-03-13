@@ -26,6 +26,8 @@ export class LoginComponent {
       this.infoMessage = "Registrazione completata. Controlla l'email per confermare l'account.";
     } else if (qp.get('verified') === '1') {
       this.infoMessage = 'Email verificata correttamente. Ora puoi accedere con le tue credenziali.';
+    } else if (qp.get('invited') === '1') {
+      this.infoMessage = 'Accesso attivato. Accedi con email e password per vedere i freezer condivisi.';
     }
   }
 

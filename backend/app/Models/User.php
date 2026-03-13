@@ -52,6 +52,36 @@ class User extends Authenticatable
         return $this->hasMany(Freezer::class);
     }
 
+    /** Freezers condivisi con questo utente (non è il proprietario). */
+    public function sharedFreezers(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Freezer::class, 'freezer_user')->withTimestamps();
+    }
+
+    /** ID di tutti i freezer a cui l'utente ha accesso (propri + condivisi). */
+    public function accessibleFreezerIds(): array
+    {
+        $owned = $this->freezers()->pluck('id')->toArray();
+        $shared = $this->sharedFreezers()->pluck('id')->toArray();
+
+        return array_values(array_unique(array_merge($owned, $shared)));
+    }
+
+    /** Query builder per tutti i freezer accessibili (propri + condivisi). */
+    public function accessibleFreezers(): \Illuminate\Database\Eloquent\Builder
+    {
+        $ids = $this->accessibleFreezerIds();
+
+        return Freezer::whereIn('id', $ids)->orderBy('name');
+    }
+
+    /** Verifica se l'utente può accedere al freezer (proprietario o condiviso). */
+    public function canAccessFreezer(Freezer $freezer): bool
+    {
+        return $freezer->user_id === $this->id
+            || $this->sharedFreezers()->where('freezers.id', $freezer->id)->exists();
+    }
+
     public function tags(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Tag::class);

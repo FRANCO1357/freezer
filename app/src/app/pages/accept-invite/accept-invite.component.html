@@ -1,0 +1,84 @@
+<div class="login-page min-vh-100 d-flex align-items-center justify-content-center py-4">
+  <div class="container" style="max-width: 400px;">
+    <div class="login-card card">
+      <div class="card-body p-4">
+        <h1 class="h4 fw-bold mb-1">Accetta invito</h1>
+
+        @if (loadError()) {
+          <div class="alert alert-danger py-2 small" role="alert">{{ loadError() }}</div>
+          <a routerLink="/login" class="btn btn-outline-secondary">Vai al login</a>
+        } @else {
+
+        @if (inviterName()) {
+          <p class="text-muted small mb-3">
+            <strong>{{ inviterName() }}</strong> ti ha invitato a usare il suo account Freezer
+            Organizer. Inserisci nome e password per attivare il tuo accesso (vedrai gli stessi
+            freezer e prodotti).
+          </p>
+          <p class="small text-muted mb-3">Email: {{ invitedEmail() }}</p>
+        }
+
+        @if (successMessage()) {
+          <div class="alert alert-success py-2 small">{{ successMessage() }}</div>
+          <p class="small text-muted">Reindirizzamento al login…</p>
+        } @else if (inviterName()) {
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            @if (errorMessage()) {
+              <div class="alert alert-danger py-2 small" role="alert">{{ errorMessage() }}</div>
+            }
+
+            <div class="mb-3">
+              <label for="name" class="form-label">Nome</label>
+              <input
+                id="name"
+                type="text"
+                class="form-control"
+                formControlName="name"
+                placeholder="Il tuo nome"
+                [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched"
+              />
+              @if (form.get('name')?.invalid && form.get('name')?.touched) {
+                <div class="invalid-feedback d-block">Obbligatorio.</div>
+              }
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input
+                id="password"
+                type="password"
+                class="form-control"
+                formControlName="password"
+                placeholder="Minimo 8 caratteri"
+                [class.is-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+              />
+              @if (form.get('password')?.invalid && form.get('password')?.touched) {
+                <div class="invalid-feedback d-block">Almeno 8 caratteri.</div>
+              }
+            </div>
+
+            <div class="mb-4">
+              <label for="password_confirmation" class="form-label">Conferma password</label>
+              <input
+                id="password_confirmation"
+                type="password"
+                class="form-control"
+                formControlName="password_confirmation"
+                placeholder="Ripeti la password"
+              />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 mb-2" [disabled]="loading()">
+              {{ loading() ? 'Attivazione…' : 'Attiva accesso' }}
+            </button>
+          </form>
+        }
+
+        <p class="text-center small text-muted mb-0 mt-3">
+          <a routerLink="/login" class="text-decoration-none">Torna al login</a>
+        </p>
+        }
+      </div>
+    </div>
+  </div>
+</div>

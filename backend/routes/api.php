@@ -2,6 +2,7 @@
 
 use App\Models\Freezer;
 use App\Models\FreezerLog;
+use App\Models\Invitation;
 use App\Models\Product;
 use App\Models\Tag;
 use App\Models\User;
@@ -107,6 +108,59 @@ Route::get('/verify-email/{id}/{hash}', function (Request $request, int $id, str
     return redirect()->away($frontendLogin . '?verified=1');
 })->name('verification.verify');
 
+// Inviti: accetta invito (pubblico, senza auth)
+Route::get('/invitations/accept', function (Request $request) {
+    $token = $request->query('token');
+    if (! $token) {
+        return response()->json(['error' => 'Token mancante.'], 400);
+    }
+    $invitation = Invitation::where('token', $token)->first();
+    if (! $invitation || ! $invitation->isValid()) {
+        return response()->json(['error' => 'Invito non valido o scaduto.'], 404);
+    }
+    $invitation->load('inviter');
+    return response()->json([
+        'inviter_name' => $invitation->inviter->name,
+        'invited_email' => $invitation->invited_email,
+    ]);
+});
+
+Route::post('/invitations/accept', function (Request $request) {
+    $data = $request->validate([
+        'token' => 'required|string',
+        'name' => 'required|string|max:255',
+        'password' => 'required|string|min:8|confirmed',
+    ]);
+    $invitation = Invitation::where('token', $data['token'])->first();
+    if (! $invitation || ! $invitation->isValid()) {
+        throw ValidationException::withMessages(['token' => ['Invito non valido o scaduto.']]);
+    }
+    $invitation->load('inviter');
+    $inviter = $invitation->inviter;
+    $email = $invitation->invited_email;
+
+    $user = User::where('email', $email)->first();
+    if (! $user) {
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $email,
+            'password' => $data['password'],
+            'email_verified_at' => now(),
+        ]);
+    }
+
+    $freezerIds = $inviter->accessibleFreezerIds();
+    foreach ($freezerIds as $fid) {
+        $user->sharedFreezers()->syncWithoutDetaching([$fid]);
+    }
+
+    $invitation->update(['used_at' => now()]);
+
+    return response()->json([
+        'message' => 'Accesso attivato. Ora puoi accedere con le tue credenziali e vedere gli stessi freezer.',
+    ]);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', function (Request $request) {
         $request->user()->currentAccessToken()->delete();
@@ -124,7 +178,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---------- Freezers ----------
     Route::get('/freezers', function (Request $request) {
-        return $request->user()->freezers()->orderBy('name')->get();
+        return $request->user()->accessibleFreezers()->get();
     });
 
     Route::post('/freezers', function (Request $request) {
@@ -133,14 +187,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/freezers/{freezer}', function (Request $request, Freezer $freezer) {
-        if ($freezer->user_id !== $request->user()->id) {
+        if (! $request->user()->canAccessFreezer($freezer)) {
             abort(404);
         }
         return $freezer->load('products.tags');
     });
 
     Route::put('/freezers/{freezer}', function (Request $request, Freezer $freezer) {
-        if ($freezer->user_id !== $request->user()->id) {
+        if (! $request->user()->canAccessFreezer($freezer)) {
             abort(404);
         }
         $data = $request->validate(['name' => 'required|string|max:255']);
@@ -149,8 +203,11 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::delete('/freezers/{freezer}', function (Request $request, Freezer $freezer) {
-        if ($freezer->user_id !== $request->user()->id) {
+        if (! $request->user()->canAccessFreezer($freezer)) {
             abort(404);
+        }
+        if ($freezer->user_id !== $request->user()->id) {
+            abort(403, 'Solo il proprietario può eliminare il freezer.');
         }
         $freezer->delete();
         return response()->json(null, 204);
@@ -192,19 +249,18 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ---------- Products ----------
-    // Tutti i prodotti (tutti i freezer) o solo di un freezer
+    // Tutti i prodotti (tutti i freezer accessibili) o solo di un freezer
     Route::get('/products', function (Request $request) {
         $user = $request->user();
         $freezerId = $request->query('freezer_id');
+        $accessibleIds = $user->accessibleFreezerIds();
         if ($freezerId) {
-            $freezer = $user->freezers()->find($freezerId);
-            if (!$freezer) {
+            if (! in_array((int) $freezerId, $accessibleIds, true)) {
                 abort(404);
             }
-            return $freezer->products()->with('tags')->orderBy('name')->get();
+            return Freezer::findOrFail($freezerId)->products()->with('tags')->orderBy('name')->get();
         }
-        $freezers = $user->freezers()->pluck('id');
-        return Product::whereIn('freezer_id', $freezers)->with(['freezer', 'tags'])->orderBy('name')->get();
+        return Product::whereIn('freezer_id', $accessibleIds)->with(['freezer', 'tags'])->orderBy('name')->get();
     });
 
     Route::post('/products', function (Request $request) {
@@ -215,7 +271,10 @@ Route::middleware('auth:sanctum')->group(function () {
             $decoded = json_decode($tagIdsRaw, true);
             $request->merge(['tag_ids' => is_array($decoded) ? $decoded : []]);
         }
-        $freezer = $user->freezers()->findOrFail($request->input('freezer_id'));
+        $freezer = Freezer::findOrFail($request->input('freezer_id'));
+        if (! $user->canAccessFreezer($freezer)) {
+            abort(404);
+        }
         $data = $request->validate([
             'freezer_id' => 'required|exists:freezers,id',
             'name' => 'required|string|max:255',
@@ -262,14 +321,14 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/products/{product}', function (Request $request, Product $product) {
-        if ($product->freezer->user_id !== $request->user()->id) {
+        if (! $request->user()->canAccessFreezer($product->freezer)) {
             abort(404);
         }
         return $product->load(['freezer', 'tags']);
     });
 
     Route::put('/products/{product}', function (Request $request, Product $product) {
-        if ($product->freezer->user_id !== $request->user()->id) {
+        if (! $request->user()->canAccessFreezer($product->freezer)) {
             abort(404);
         }
         $data = $request->validate([
@@ -297,7 +356,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Update con FormData (multipart): POST perché PUT non popola $request->all() in PHP
     Route::post('/products/{product}/update', function (Request $request, Product $product) {
-        if ($product->freezer->user_id !== $request->user()->id) abort(404);
+        if (! $request->user()->canAccessFreezer($product->freezer)) {
+            abort(404);
+        }
         $tagIdsRaw = $request->input('tag_ids');
         $tagIds = is_string($tagIdsRaw) ? json_decode($tagIdsRaw, true) : $tagIdsRaw;
         $oldName = $product->name;
@@ -306,7 +367,7 @@ Route::middleware('auth:sanctum')->group(function () {
         $oldPieces = $product->pieces;
         $iconVal = $request->input('icon');
         $newFreezerId = $request->input('freezer_id') ? (int) $request->input('freezer_id') : null;
-        if ($newFreezerId && $request->user()->freezers()->where('id', $newFreezerId)->exists() === false) {
+        if ($newFreezerId && ! in_array($newFreezerId, $request->user()->accessibleFreezerIds(), true)) {
             abort(422, 'Freezer non valido.');
         }
         $data = [
@@ -376,7 +437,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::delete('/products/{product}', function (Request $request, Product $product) {
-        if ($product->freezer->user_id !== $request->user()->id) {
+        if (! $request->user()->canAccessFreezer($product->freezer)) {
             abort(404);
         }
         $user = $request->user();
@@ -405,7 +466,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // URL pubblico per immagine prodotto (path relativo da frontend)
     Route::get('/products/{product}/image', function (Request $request, Product $product) {
-        if ($product->freezer->user_id !== $request->user()->id) {
+        if (! $request->user()->canAccessFreezer($product->freezer)) {
             abort(404);
         }
         if (!$product->image_path) {
@@ -416,9 +477,48 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ---------- Storico ----------
     Route::get('/history', function (Request $request) {
-        return $request->user()->freezerLogs()->with('freezer:id,name')
+        $freezerIds = $request->user()->accessibleFreezerIds();
+        return FreezerLog::whereIn('freezer_id', $freezerIds)
+            ->with('freezer:id,name')
             ->orderByDesc('created_at')
             ->limit(200)
             ->get();
     });
+
+    // ---------- Inviti (condivisione account) ----------
+    Route::post('/invitations', function (Request $request) {
+        $request->validate(['email' => 'required|email']);
+        $user = $request->user();
+        $email = strtolower($request->input('email'));
+
+        if ($email === strtolower($user->email)) {
+            throw ValidationException::withMessages(['email' => ['Non puoi invitare il tuo stesso indirizzo.']]);
+        }
+
+        $existing = User::where('email', $email)->first();
+        if ($existing && array_intersect($existing->accessibleFreezerIds(), $user->accessibleFreezerIds()) !== []) {
+            throw ValidationException::withMessages(['email' => ['Questo utente ha già accesso.']]);
+        }
+
+        $invitation = Invitation::create([
+            'inviter_id' => $user->id,
+            'invited_email' => $email,
+            'token' => Invitation::generateToken(),
+            'expires_at' => now()->addDays(7),
+        ]);
+
+        $acceptUrl = rtrim(env('FRONTEND_LOGIN_URL', 'http://localhost:4200/login'), '/');
+        $acceptUrl = preg_replace('#/login$#', '', $acceptUrl) . '/invite/accept?token=' . $invitation->token;
+
+        Mail::raw(
+            "Ciao,\n\n{$user->name} ti ha invitato a usare il suo account Freezer Organizer. Clicca sul link qui sotto per accettare e creare il tuo accesso (stessi freezer e prodotti):\n\n{$acceptUrl}\n\nIl link scade tra 7 giorni.\n\nSe non conosci {$user->name}, ignora questa email.",
+            function ($message) use ($email, $user) {
+                $message->to($email)
+                    ->subject("Invito da {$user->name} - Freezer Organizer");
+            }
+        );
+
+        return response()->json(['message' => 'Invito inviato. L\'utente riceverà un\'email con il link per accettare.'], 201);
+    });
+
 });

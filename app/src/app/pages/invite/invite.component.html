@@ -1,0 +1,41 @@
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Invita un utente</h1>
+  <a routerLink="/area-riservata/freezers" class="btn btn-outline-secondary btn-sm">Indietro</a>
+</div>
+
+<div class="login-card card">
+  <div class="card-body p-4">
+    <p class="text-muted small mb-3">
+      Invia un invito all’indirizzo email della persona che vuoi aggiungere. Riceverà un link per
+      creare il proprio accesso e vedere gli stessi freezer e prodotti che vedi tu.
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      @if (errorMessage) {
+        <div class="alert alert-danger py-2 small" role="alert">{{ errorMessage }}</div>
+      }
+      @if (successMessage) {
+        <div class="alert alert-success py-2 small" role="alert">{{ successMessage }}</div>
+      }
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input
+          id="email"
+          type="email"
+          class="form-control"
+          formControlName="email"
+          placeholder="email@esempio.com"
+          [class.is-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+        />
+        @if (form.get('email')?.invalid && form.get('email')?.touched) {
+          <div class="invalid-feedback d-block">Inserisci un'email valida.</div>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{ loading ? 'Invio in corso…' : 'Invia invito' }}
+      </button>
+    </form>
+  </div>
+</div>

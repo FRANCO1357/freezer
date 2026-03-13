@@ -15,6 +15,10 @@ export const routes: Routes = [
     canActivate: [loggedInGuard],
   },
   {
+    path: 'invite/accept',
+    loadComponent: () => import('./pages/accept-invite/accept-invite.component').then(m => m.AcceptInviteComponent),
+  },
+  {
     path: 'area-riservata',
     loadComponent: () => import('./pages/area-riservata/area-riservata-layout.component').then(m => m.AreaRiservataLayoutComponent),
     canActivate: [authGuard],
@@ -27,6 +31,7 @@ export const routes: Routes = [
       { path: 'prodotto/:id/visualizza', loadComponent: () => import('./pages/product-view/product-view.component').then(m => m.ProductViewComponent) },
       { path: 'prodotto/:id', loadComponent: () => import('./pages/product-form/product-form.component').then(m => m.ProductFormComponent) },
       { path: 'storico', loadComponent: () => import('./pages/history/history.component').then(m => m.HistoryComponent) },
+      { path: 'invita', loadComponent: () => import('./pages/invite/invite.component').then(m => m.InviteComponent) },
     ],
   },
   { path: '**', redirectTo: '' },
