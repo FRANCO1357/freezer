@@ -103,7 +103,7 @@ Route::get('/verify-email/{id}/{hash}', function (Request $request, int $id, str
         $user->save();
     }
 
-    $frontendLogin = env('FRONTEND_LOGIN_URL', 'http://localhost:4200/login');
+    $frontendLogin = config('services.frontend_login_url');
 
     return redirect()->away($frontendLogin . '?verified=1');
 })->name('verification.verify');
@@ -147,11 +147,16 @@ Route::post('/invitations/accept', function (Request $request) {
             'password' => $data['password'],
             'email_verified_at' => now(),
         ]);
+    } else {
+        $user->update([
+            'name' => $data['name'],
+            'password' => $data['password'],
+        ]);
     }
 
     $freezerIds = $inviter->accessibleFreezerIds();
-    foreach ($freezerIds as $fid) {
-        $user->sharedFreezers()->syncWithoutDetaching([$fid]);
+    if ($freezerIds !== []) {
+        $user->sharedFreezers()->syncWithoutDetaching($freezerIds);
     }
 
     $invitation->update(['used_at' => now()]);
@@ -507,7 +512,7 @@ Route::middleware('auth:sanctum')->group(function () {
             'expires_at' => now()->addDays(7),
         ]);
 
-        $acceptUrl = rtrim(env('FRONTEND_LOGIN_URL', 'http://localhost:4200/login'), '/');
+        $acceptUrl = rtrim(config('services.frontend_login_url'), '/');
         $acceptUrl = preg_replace('#/login$#', '', $acceptUrl) . '/invite/accept?token=' . $invitation->token;
 
         Mail::raw(

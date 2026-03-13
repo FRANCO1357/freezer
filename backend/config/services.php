@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    /*
+    | Base URL del frontend (per link in email: verifica account, inviti).
+    | Es. https://freezer.francescomelani.com/login → link tipo .../invite/accept?token=...
+    */
+    'frontend_login_url' => env('FRONTEND_LOGIN_URL', 'http://localhost:4200/login'),
+
 ];
