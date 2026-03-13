@@ -62,7 +62,7 @@ class User extends Authenticatable
     public function accessibleFreezerIds(): array
     {
         $owned = $this->freezers()->pluck('id')->toArray();
-        $shared = $this->sharedFreezers()->pluck('id')->toArray();
+        $shared = $this->sharedFreezers()->pluck('freezers.id')->toArray();
 
         return array_values(array_unique(array_merge($owned, $shared)));
     }
