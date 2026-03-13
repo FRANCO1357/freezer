@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 
@@ -14,9 +14,18 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   errorMessage = '';
+  infoMessage = '';
   loading = false;
+
+  constructor() {
+    const registered = this.route.snapshot.queryParamMap.get('registered');
+    if (registered === '1') {
+      this.infoMessage = "Registrazione completata. Controlla l'email per confermare l'account.";
+    }
+  }
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

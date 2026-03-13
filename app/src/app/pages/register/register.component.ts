@@ -48,7 +48,11 @@ export class RegisterComponent {
         this.loading = false;
         this.successMessage =
           res.message || "Registrazione completata. Controlla l'email per confermare l'account.";
-        // opzionale: potremmo anche reindirizzare al login dopo qualche secondo
+        setTimeout(() => {
+          this.router.navigate(['/login'], {
+            queryParams: { registered: '1' },
+          });
+        }, 1500);
       },
       error: (err) => {
         this.loading = false;
