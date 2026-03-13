@@ -8,11 +8,13 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
 
-// Rate limit: 5 tentativi login per minuto
+// Rate limit: 5 tentativi login/registrazione per minuto
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/login', function (Request $request) {
         $request->validate([
@@ -40,7 +42,64 @@ Route::middleware('throttle:5,1')->group(function () {
             ],
         ]);
     });
+
+    Route::post('/register', function (Request $request) {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            // il cast "hashed" nel modello penserà a criptare la password
+            'password' => $data['password'],
+        ]);
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->email),
+            ]
+        );
+
+        Mail::raw(
+            "Ciao {$user->name},\n\nclicca sul link seguente per confermare il tuo account Freezer Organizer:\n\n{$verificationUrl}\n\nSe non hai richiesto tu questo account, ignora questa email.",
+            function ($message) use ($user) {
+                $message->to($user->email)
+                    ->subject('Conferma il tuo account Freezer Organizer');
+            }
+        );
+
+        return response()->json([
+            'message' => 'Registrazione completata. Controlla la tua email per confermare l’account.',
+        ], 201);
+    });
 });
+
+Route::get('/verify-email/{id}/{hash}', function (Request $request, int $id, string $hash) {
+    if (! URL::hasValidSignature($request)) {
+        abort(403, 'Link di verifica non valido o scaduto.');
+    }
+
+    $user = User::findOrFail($id);
+
+    if (sha1($user->email) !== $hash) {
+        abort(403, 'Link di verifica non valido.');
+    }
+
+    if (! $user->email_verified_at) {
+        $user->email_verified_at = now();
+        $user->save();
+    }
+
+    return response()->json([
+        'message' => 'Email verificata correttamente. Ora puoi tornare all’app e accedere.',
+    ]);
+})->name('verification.verify');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', function (Request $request) {

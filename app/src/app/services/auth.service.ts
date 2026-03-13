@@ -15,6 +15,10 @@ export interface LoginResponse {
   user: User;
 }
 
+export interface RegisterResponse {
+  message: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
@@ -51,6 +55,15 @@ export class AuthService {
           localStorage.setItem(this.userKey, JSON.stringify(res.user));
         })
       );
+  }
+
+  register(name: string, email: string, password: string, passwordConfirmation: string): Observable<RegisterResponse> {
+    return this.http.post<RegisterResponse>(`${this.apiUrl}/register`, {
+      name,
+      email,
+      password,
+      password_confirmation: passwordConfirmation,
+    });
   }
 
   logout(): Observable<void> {

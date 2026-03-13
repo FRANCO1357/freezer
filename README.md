@@ -213,11 +213,104 @@ Se sul server il comando `mysql` non è disponibile, usa solo l’export e impor
 
 ---
 
-## 5. Login e area riservata
+## 5. Login, registrazione e mailer
 
 - **Credenziali admin:** in **`credentials.local`** → `[login_admin]`. L’utente è creato dal seeder. Cambia la password dopo il primo accesso.
-- **API:** `POST /api/login`, `POST /api/logout`, `GET /api/user` (protetta). Backend con Sanctum, bcrypt, rate limiting, CORS.
+- **API autenticazione base:**  
+  - `POST /api/login`  
+  - `POST /api/logout`  
+  - `GET /api/user` (protetta).  
+  Backend con Sanctum, bcrypt, rate limiting, CORS.
 - **Frontend:** `/login`, `/area-riservata` (guard). In sviluppo il proxy manda `/api` a `http://localhost:8000`; in produzione API su `/backend/public/api`.
+
+### 5.1 Registrazione utente e conferma email
+
+È stata aggiunta la **registrazione con conferma email**:
+
+- **Endpoint backend:**
+  - `POST /api/register` → crea un nuovo utente e invia una mail con link di conferma.
+  - `GET /api/verify-email/{id}/{hash}` → verifica la firma del link e imposta `email_verified_at` per l’utente.
+- **Frontend:**
+  - Pagina `/register` (Angular) con form `nome / email / password / conferma password`.
+  - Dalla pagina `/login` c’è un link “Registrati” che porta a `/register`.
+  - Dopo la registrazione viene mostrato un messaggio tipo _“Controlla l’email per confermare l’account”_.
+- **Utente esistente:** l’utente admin già presente nel database **non viene toccato**; la registrazione aggiunge solo nuovi record nella tabella `users`.
+
+### 5.2 Configurazione mailer (locale e produzione)
+
+Laravel usa le variabili in `backend/.env`:
+
+```env
+MAIL_MAILER=log
+MAIL_HOST=127.0.0.1
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+#### 5.2.1 Comportamento di default in locale
+
+- Con `MAIL_MAILER=log` **non viene inviata nessuna email reale**.
+- Il contenuto delle email (incluso il link di verifica account) viene scritto nel **log di Laravel**:
+  - in locale tipicamente in `backend/storage/logs/laravel.log`  
+  - oppure in console se configurato così.
+- Per testare la verifica account in locale puoi:
+  1. Registrare un nuovo utente da `/register`.
+  2. Aprire `backend/storage/logs/laravel.log` e cercare l’URL di verifica (`/api/verify-email/...`).
+  3. Copiare l’URL nel browser → l’email viene segnata come verificata.
+
+#### 5.2.2 Mailer in locale (es. Mailtrap)
+
+Se vuoi vedere davvero le email in una inbox di test, puoi usare un servizio tipo **Mailtrap**:
+
+1. Crea un account su Mailtrap e un inbox di test.
+2. Prendi i parametri SMTP (host, porta, username, password).
+3. In `backend/.env` (solo in locale) imposta ad es.:
+
+   ```env
+   MAIL_MAILER=smtp
+   MAIL_HOST=<host SMTP di Mailtrap>
+   MAIL_PORT=<porta SMTP di Mailtrap>
+   MAIL_USERNAME=<username SMTP>
+   MAIL_PASSWORD=<password SMTP>
+   MAIL_ENCRYPTION=tls
+   MAIL_FROM_ADDRESS="no-reply@freezer.local"
+   MAIL_FROM_NAME="Freezer Organizer"
+   ```
+
+4. Riavvia `php artisan serve`.
+
+Da questo momento, le mail inviate da `/api/register` arriveranno nella inbox di Mailtrap (non nella posta reale).
+
+#### 5.2.3 Mailer in produzione (Hostinger)
+
+In produzione, usa l’SMTP di Hostinger (o di un provider esterno) e **non** committare mai le credenziali:
+
+1. Salva i parametri SMTP (host, porta, username, password, from) in **`credentials.local`**, ad es. sezione `[mailer_hostinger]`.
+2. Nel file `.env` sul server (`public_html/freezer/backend/.env`) imposta:
+
+   ```env
+   MAIL_MAILER=smtp
+   MAIL_HOST=<host SMTP Hostinger o provider>
+   MAIL_PORT=<porta SMTP>
+   MAIL_USERNAME=<utente SMTP>
+   MAIL_PASSWORD=<password SMTP>
+   MAIL_ENCRYPTION=tls   # o null / ssl in base a come richiede il provider
+   MAIL_FROM_ADDRESS="no-reply@freezer.francescomelani.com"
+   MAIL_FROM_NAME="Freezer Organizer"
+   ```
+
+3. Assicurati che `APP_URL` nel `.env` di produzione sia:
+
+   ```env
+   APP_URL=https://freezer.francescomelani.com
+   ```
+
+   In questo modo i link di verifica generati dal backend punteranno al dominio corretto.
+
+> Nota: se cambi il mailer in produzione, non serve alcuna migration o comando DB aggiuntivo; basta aggiornare `.env` e, se vuoi, eseguire `php artisan config:clear` sul server.
 
 ---
 

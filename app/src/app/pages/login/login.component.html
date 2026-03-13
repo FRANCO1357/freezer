@@ -18,7 +18,7 @@
               class="form-control"
               formControlName="email"
               autocomplete="email"
-              placeholder="admin@francescomelani.com"
+              placeholder="mario@gmail.com"
               [class.is-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
             />
             @if (form.get('email')?.invalid && form.get('email')?.touched) {
@@ -46,6 +46,11 @@
             {{ loading ? 'Accesso in corso…' : 'Accedi' }}
           </button>
         </form>
+
+        <p class="text-center small text-muted mb-0 mt-3">
+          Non hai un account?
+          <a routerLink="/register" class="text-decoration-none">Registrati</a>
+        </p>
       </div>
     </div>
   </div>

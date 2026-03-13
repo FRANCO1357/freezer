@@ -10,6 +10,11 @@ export const routes: Routes = [
     canActivate: [loggedInGuard],
   },
   {
+    path: 'register',
+    loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent),
+    canActivate: [loggedInGuard],
+  },
+  {
     path: 'area-riservata',
     loadComponent: () => import('./pages/area-riservata/area-riservata-layout.component').then(m => m.AreaRiservataLayoutComponent),
     canActivate: [authGuard],

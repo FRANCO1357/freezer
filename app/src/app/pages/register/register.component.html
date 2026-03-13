@@ -1,0 +1,95 @@
+<div class="login-page min-vh-100 d-flex align-items-center justify-content-center py-4">
+  <div class="container" style="max-width: 400px;">
+    <div class="login-card card">
+      <div class="card-body p-4">
+        <h1 class="h4 fw-bold mb-1">Crea un account</h1>
+        <p class="text-muted small mb-4">Registrati per usare Freezer Organizer</p>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          @if (errorMessage) {
+            <div class="alert alert-danger py-2 small" role="alert">{{ errorMessage }}</div>
+          }
+          @if (successMessage) {
+            <div class="alert alert-success py-2 small" role="alert">
+              {{ successMessage }}
+            </div>
+          }
+
+          <div class="mb-3">
+            <label for="name" class="form-label">Nome</label>
+            <input
+              id="name"
+              type="text"
+              class="form-control"
+              formControlName="name"
+              autocomplete="name"
+              placeholder="Es. Mario Rossi"
+              [class.is-invalid]="form.get('name')?.invalid && form.get('name')?.touched"
+            />
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <div class="invalid-feedback d-block">Inserisci il tuo nome.</div>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input
+              id="email"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              autocomplete="email"
+              placeholder="tu@esempio.com"
+              [class.is-invalid]="form.get('email')?.invalid && form.get('email')?.touched"
+            />
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+              <div class="invalid-feedback d-block">Inserisci un'email valida.</div>
+            }
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input
+              id="password"
+              type="password"
+              class="form-control"
+              formControlName="password"
+              autocomplete="new-password"
+              placeholder="Minimo 8 caratteri"
+              [class.is-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+            />
+            @if (form.get('password')?.invalid && form.get('password')?.touched) {
+              <div class="invalid-feedback d-block">Almeno 8 caratteri.</div>
+            }
+          </div>
+
+          <div class="mb-4">
+            <label for="password_confirmation" class="form-label">Conferma password</label>
+            <input
+              id="password_confirmation"
+              type="password"
+              class="form-control"
+              formControlName="password_confirmation"
+              autocomplete="new-password"
+              placeholder="Ripeti la password"
+              [class.is-invalid]="form.get('password_confirmation')?.invalid && form.get('password_confirmation')?.touched"
+            />
+            @if (form.get('password_confirmation')?.invalid && form.get('password_confirmation')?.touched) {
+              <div class="invalid-feedback d-block">Conferma la password.</div>
+            }
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 mb-2" [disabled]="loading">
+            {{ loading ? 'Registrazione in corso…' : 'Registrati' }}
+          </button>
+
+          <p class="text-center small text-muted mb-0">
+            Hai già un account?
+            <a routerLink="/login" class="text-decoration-none">Accedi</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
