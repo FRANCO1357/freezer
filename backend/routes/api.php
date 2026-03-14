@@ -151,6 +151,7 @@ Route::post('/invitations/accept', function (Request $request) {
         $user->update([
             'name' => $data['name'],
             'password' => $data['password'],
+            'email_verified_at' => now(),
         ]);
     }
 
