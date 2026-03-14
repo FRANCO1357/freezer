@@ -2,3 +2,33 @@
   display: block;
   min-height: 100vh;
 }
+
+.app-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Lo spazio va alla vista attiva (sibling del router-outlet) */
+.app-main > router-outlet + * {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.app-footer {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #6c757d;
+  background: #fff;
+  border-top: 1px solid #dee2e6;
+}
