@@ -68,6 +68,11 @@ body {
     padding-left: 1rem;
     padding-right: 1rem;
   }
+
+  .d-flex.flex-wrap.align-items-center.justify-content-between.gap-2.mt-3 {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
 }
 
 /* Campi form: sfondo trasparente in linea con il resto dell’app */
@@ -164,7 +169,7 @@ app-freezers-list .card {
   .table-panel {
     padding-left: 0;
     padding-right: 0;
-    padding-bottom: 0;
+    padding-bottom: 1rem;
     border-radius: 0;
   }
   .table-panel-title {

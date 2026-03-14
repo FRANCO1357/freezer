@@ -52,7 +52,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (p of filteredProducts(); track p.id) {
+        @for (p of paginatedProducts(); track p.id) {
           <tr>
             <td>
               <strong class="d-none d-md-inline">{{ p.name }}</strong>
@@ -87,6 +87,26 @@
       </tbody>
     </table>
     </div>
+    @if (filteredProducts().length > PAGE_SIZE) {
+      <nav class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3" aria-label="Paginazione">
+        <span class="small text-muted">
+          Righe {{ paginationRange().start }}-{{ paginationRange().end }} di {{ paginationRange().total }}
+        </span>
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item" [class.disabled]="effectivePage() <= 1">
+            <button type="button" class="page-link" (click)="setPage(effectivePage() - 1)" [disabled]="effectivePage() <= 1" aria-label="Precedente">Precedente</button>
+          </li>
+          @for (p of pageNumbers(); track p) {
+            <li class="page-item" [class.active]="p === effectivePage()">
+              <button type="button" class="page-link" (click)="setPage(p)">{{ p }}</button>
+            </li>
+          }
+          <li class="page-item" [class.disabled]="effectivePage() >= totalPages()">
+            <button type="button" class="page-link" (click)="setPage(effectivePage() + 1)" [disabled]="effectivePage() >= totalPages()" aria-label="Successiva">Successiva</button>
+          </li>
+        </ul>
+      </nav>
+    }
   </div>
   @if (balloonVisible()) {
     <div

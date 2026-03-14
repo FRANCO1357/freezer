@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ProductService, Product } from '../../services/product.service';
 import { FreezerService, Freezer } from '../../services/freezer.service';
 import { PRODUCT_ICONS } from '../../constants/product-icons';
+import { TABLE_PAGE_SIZE } from '../../constants/pagination';
 import { FormatQuantityPipe } from '../../pipes/format-quantity.pipe';
 import { TruncatePipe } from '../../pipes/truncate.pipe';
 
@@ -52,6 +53,48 @@ export class AllProductsComponent implements OnInit {
       return order === 'newest' ? db - da : da - db;
     });
     return result;
+  });
+
+  currentPage = signal(1);
+  totalPages = computed(() =>
+    Math.max(1, Math.ceil(this.filteredProducts().length / TABLE_PAGE_SIZE))
+  );
+  effectivePage = computed(() =>
+    Math.min(this.currentPage(), this.totalPages())
+  );
+  paginatedProducts = computed(() => {
+    const all = this.filteredProducts();
+    const page = this.effectivePage();
+    const start = (page - 1) * TABLE_PAGE_SIZE;
+    return all.slice(start, start + TABLE_PAGE_SIZE);
+  });
+
+  setPage(page: number): void {
+    this.currentPage.set(Math.max(1, Math.min(page, this.totalPages())));
+  }
+
+  protected readonly PAGE_SIZE = TABLE_PAGE_SIZE;
+
+  paginationRange = computed(() => {
+    const total = this.filteredProducts().length;
+    const page = this.effectivePage();
+    const start = total === 0 ? 0 : (page - 1) * TABLE_PAGE_SIZE + 1;
+    const end = Math.min(page * TABLE_PAGE_SIZE, total);
+    return { start, end, total };
+  });
+
+  pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this.effectivePage();
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const delta = 2;
+    let start = Math.max(1, current - delta);
+    let end = Math.min(total, current + delta);
+    if (end - start < 2 * delta) {
+      if (start === 1) end = Math.min(total, start + 2 * delta);
+      else start = Math.max(1, end - 2 * delta);
+    }
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   });
 
   ngOnInit(): void {
